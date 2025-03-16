@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Personal Score Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body { background-color: #f8f9f8; font-family: 'Arial', sans-serif; }
+        .container { max-width: 900px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 40px; }
+        .btn-masters-green { background-color: #006400; color: white; border-radius: 30px; }
+        .btn-masters-green:hover { background-color: #004d00; }
+        .btn-masters-gold { background-color: #FFD700; color: black; border-radius: 30px; }
+        .btn-masters-gold:hover { background-color: #e6c200; }
+        .table th, .table td { vertical-align: middle; }
+        .table th {
+            background-color: #004d00;
+            color: #333;
+        }
+        .table thead th {
+            color: #ffffff; 
+            font-weight: bold;
+        }
+        .btn-masters-green-invert {
+            background-color: white;
+            color: #006400;
+            border: none;
+            border-radius: 25px;
+        }
+        .btn-masters-green-invert:hover {
+            background-color: #006400;
+            color: white;
+            border: none;
+            border-radius: 25px;
+        }
+    </style>
+
+    <script>
+        function toggleFixed(holeId) {
+            let input = document.getElementById('strokes_hole_' + holeId);
+            let button = document.getElementById('toggle_hole_' + holeId);
+            let stablefordDisplay = document.getElementById('stableford_hole_' + holeId);
+            let hiddenField = document.getElementById('hidden_stableford_points_' + holeId);
+
+            if (input.readOnly) {
+                input.readOnly = false;
+                button.innerText = 'Open';
+                stablefordDisplay.innerText = '-';
+                hiddenField.value = '';
+            } else {
+                input.readOnly = true;
+                button.innerText = 'Fixed';
+                let strokesTaken = parseInt(input.value) || 0;
+                let par = parseInt(document.querySelector('#strokes_hole_' + holeId).parentElement.previousElementSibling.previousElementSibling.innerText);
+                let strokesGiven = parseInt(document.querySelector('#strokes_hole_' + holeId).parentElement.previousElementSibling.innerText);
+                let netScore = strokesTaken - strokesGiven;
+                let stablefordPoints = calculateStableford(par, netScore);
+                stablefordDisplay.innerText = stablefordPoints;
+                hiddenField.value = stablefordPoints;
+            }
+        }
+
+        function calculateStableford(par, netScore) {
+            let scoreDiff = netScore - par;
+            if (scoreDiff <= -4) return 6;
+            if (scoreDiff === -3) return 5;
+            if (scoreDiff === -2) return 4;
+            if (scoreDiff === -1) return 3;
+            if (scoreDiff === 0) return 2;
+            if (scoreDiff === 1) return 1;
+            return 0;
+        }
+    </script>
+</head>
+<body>
+
+<div class='container'>
+    <h2 class='text-center text-success mb-4'><i class="fas fa-user"></i> Personal Score Tracker</h2>
+
+    <!-- Form to Load Data -->
+    <form method='POST' action='/personal_score'>
+        <div class='mb-3'>
+            <label>Select Course:</label>
+            <select name='course_id' class='form-control' required>
+                {% for course in courses %}
+                <option value='{{ course[0] }}' {% if course[0]|string == selected_course|string %}selected{% endif %}>{{ course[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class='mb-3'>
+            <label>Gender:</label>
+            <select name='gender' class='form-control' required>
+                <option value='Men' {% if selected_gender == 'Men' %}selected{% endif %}>Men</option>
+                <option value='Women' {% if selected_gender == 'Women' %}selected{% endif %}>Women</option>
+            </select>
+        </div>
+        <div class='mb-3'>
+            <label>Select Tee:</label>
+            <select name='tee_color' class='form-control' required>
+                <option value='White' {% if selected_tee == 'White' %}selected{% endif %}>White</option>
+                <option value='Yellow' {% if selected_tee == 'Yellow' %}selected{% endif %}>Yellow</option>
+                <option value='Red' {% if selected_tee == 'Red' %}selected{% endif %}>Red</option>
+            </select>
+        </div>
+        <div class='mb-3'>
+            <label>Your Handicap:</label>
+            <input type='number' step='0.1' name='handicap' value='{{ user_handicap }}' class='form-control' required>
+        </div>
+        <div class='mb-3'>
+            <label>Date Played:</label>
+            <input type='date' name='date_played' class='form-control' value='{{ date_played }}' required>
+        </div>
+        <button type='submit' class='btn btn-masters-green w-100 py-2'>Calculate</button>
+    </form>
+
+    <hr>
+
+    {% if holes %}
+    <!-- Score input form -->
+    <form method='POST' action='/submit_personal_score'>
+        <input type='hidden' name='course_id' value='{{ selected_course }}'>
+        <input type='hidden' name='date_played' value='{{ date_played }}'>
+        <input type='hidden' name='playing_handicap' value='{{ playing_handicap }}'>
+
+        <div class='mb-3'>
+            <label>Playing Handicap:</label>
+            <input type='text' class='form-control' value='{{ playing_handicap }}' readonly>
+        </div>
+
+        <div class="table-responsive">
+            <table class='table table-hover text-center'>
+                <thead class="table-success">
+                    <tr><th>Hole</th><th>Par</th><th>Strokes Given</th><th>Strokes Taken</th><th>Stableford Points</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    {% for hole in holes %}
+                    <tr>
+                        <td><strong>{{ hole[0] }}</strong></td>
+                        <td>{{ hole[1] }}</td>
+                        <td>{{ hole[2] }}</td>
+                        <td><input type='number' name='strokes_{{ hole[0] }}' id='strokes_hole_{{ hole[0] }}' class='form-control text-center' required></td>
+                        <td id='stableford_hole_{{ hole[0] }}'>-</td>
+                        <td>
+                            <button type='button' id='toggle_hole_{{ hole[0] }}' class='btn btn-sm btn-masters-green-invert' onclick='toggleFixed("{{ hole[0] }}")'>Open</button>
+                            <input type='hidden' name='stableford_points_{{ hole[0] }}' id='hidden_stableford_points_{{ hole[0] }}'>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <button type='submit' class='btn btn-masters-green-invert w-100 py-2' {% if holes|length < 18 %}disabled{% endif %}>Save Score</button>
+    </form>
+    {% endif %}
+
+    <div class='text-center mt-4'>
+        <a href='/' class='btn btn-masters-green-invert py-2 w-100'><i class="fas fa-arrow-left"></i> Back to Home</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <title>Available Courses</title>
+        <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
+    </head>
+    <body>
+        <div class='container mt-4'>
+            <h1 class='text-center'>Available Golf Courses</h1>
+            <a href='/add_course' class='btn btn-success mb-3'>Add Course</a>
+            <table class='table table-striped'>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Location</th>
+                        <th>Par</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for course in courses %}
+                    <tr>
+                        <td>{{ course[1] }}</td>
+                        <td>{{ course[2] }}</td>
+                        <td>{{ course[3] }}</td>
+                        <td>
+                            <form method='POST' action='/delete_course/{{ course[0] }}' style='display:inline;'>
+                                <button type='submit' class='btn btn-danger btn-sm'>Delete</button>
+                            </form>
+                            <a href='/edit_course/{{ course[0] }}' class='btn btn-warning btn-sm'>Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a href='/' class='btn btn-secondary'>Back to Home</a>
+        </div>
+    </body>
+    </html>

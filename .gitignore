@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Databases (optional if you want a clean deployment)
+*.db
+
+# VSCode
+.vscode/
+
+# MacOS
+.DS_Store

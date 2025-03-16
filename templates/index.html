@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Golf Tournament</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="manifest" href="/static/manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js')
+                .then(() => console.log("Service Worker Registered"));
+        }
+    </script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 900px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        .btn-primary {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        .btn-primary:hover {
+            background-color: #218838;
+        }
+        .leaderboard {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .table {
+            background: white;
+        }
+        .btn-group-mobile {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        @media (min-width: 768px) {
+            .btn-group-mobile {
+                flex-direction: row;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class='container mt-4'>
+        <div class='leaderboard'>
+            <h2 class='text-center text-success'><i class="fas fa-trophy"></i> Golf Tournament Leaderboard</h2>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-success">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Team</th>
+                            <th>Avg. Handicap</th>
+                            <th>Stableford Points</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for team in teams %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ team[1] }}</td>
+                            <td>{{ team[2] }}</td>
+                            <td><strong>{{ team[3] }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class='text-center mt-4 btn-group-mobile'>
+            <a href='/register' class='btn btn-primary'><i class="fas fa-user-plus"></i> Register Team</a>
+            <a href='/record_score' class='btn btn-secondary'><i class="fas fa-pencil-alt"></i> Record Score</a>
+            <a href='/' class='btn btn-warning'><i class="fas fa-home"></i> Back to Main Page</a>
+        </div>
+    </div>
+</body>
+</html>

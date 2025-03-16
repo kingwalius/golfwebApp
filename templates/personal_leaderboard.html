@@ -1,0 +1,24 @@
+<div class='container mt-4'>
+    <h2 class='text-center text-primary'><i class="fas fa-chart-line"></i> Personal Score History</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-primary">
+                <tr>
+                    <th>Date</th>
+                    <th>Course</th>
+                    <th>Stableford Points</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for round in rounds %}
+                <tr>
+                    <td>{{ round[0] }}</td>
+                    <td>{{ round[1] }}</td>
+                    <td><strong>{{ round[2] }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <a href='/' class='btn btn-secondary mt-3'><i class="fas fa-arrow-left"></i> Back to Home</a>
+</div>

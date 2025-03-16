@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Team Round</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body { background-color: #f8f9f8; font-family: 'Arial', sans-serif; }
+        .container { max-width: 960px; margin: auto; padding: 20px; }
+        .table th { background-color: #004d00; color: white; font-weight: bold; }
+        .btn-masters-green {
+            background-color: #006400;
+            color: white;
+            border: none;
+            border-radius: 25px;
+        }
+        .btn-masters-green:hover {
+            background-color: #004d00;
+            color: white;
+        }
+        .btn-masters-gold {
+            background-color: #FFD700;
+            color: black;
+            border: none;
+            border-radius: 25px;
+        }
+        .btn-masters-gold:hover {
+            background-color: #e6c200;
+            color: black;
+        }
+        .badge-total {
+            display: inline-block;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin: 5px;
+            color: white;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .badge-total-strokes { background-color: #006400; }
+        .badge-total-stableford { background-color: #006400; }
+    </style>
+
+    <script>
+        function calculateStableford(par, strokesTaken, strokesGiven) {
+            let netScore = strokesTaken - strokesGiven;
+            let scoreDiff = netScore - par;
+
+            if (scoreDiff <= -4) return 6;
+            if (scoreDiff === -3) return 5;
+            if (scoreDiff === -2) return 4;
+            if (scoreDiff === -1) return 3;
+            if (scoreDiff === 0) return 2;
+            if (scoreDiff === 1) return 1;
+            return 0;
+        }
+
+        function updateStableford(holeNumber) {
+            let strokesTaken = parseInt(document.getElementById('strokes_' + holeNumber).value) || 0;
+            let par = parseInt(document.getElementById('par_' + holeNumber).value);
+            let strokesGiven = parseInt(document.getElementById('strokes_given_' + holeNumber).value);
+
+            let stablefordPoints = calculateStableford(par, strokesTaken, strokesGiven);
+            document.getElementById('stableford_' + holeNumber).innerText = stablefordPoints;
+
+            updateTotals();
+        }
+
+        function updateTotals() {
+            let totalStrokes = 0;
+            let totalStableford = 0;
+
+            for (let i = 1; i <= 18; i++) {
+                let strokesInput = document.getElementById('strokes_' + i);
+                let stablefordDisplay = document.getElementById('stableford_' + i);
+
+                if (strokesInput && stablefordDisplay) {
+                    let strokesTaken = parseInt(strokesInput.value) || 0;
+                    let stablefordPoints = parseInt(stablefordDisplay.innerText) || 0;
+                    totalStrokes += strokesTaken;
+                    totalStableford += stablefordPoints;
+                }
+            }
+
+            document.getElementById('total_strokes').innerText = totalStrokes;
+            document.getElementById('total_stableford').innerText = totalStableford;
+        }
+
+        // Initialize totals on page load
+        window.onload = updateTotals;
+    </script>
+</head>
+<body>
+
+<div class="container mt-4">
+    <h2 class="text-center text-success"><i class="fas fa-edit"></i> Edit Team Round</h2>
+
+    <form method="POST">
+        <input type="hidden" name="team_id" value="{{ team_id }}">
+
+        <div class="mb-3">
+            <label><strong>Date Played:</strong></label>
+            <input type="date" name="date_played" class="form-control" value="{{ date_played }}" required>
+        </div>
+
+        <table class="table table-hover text-center">
+            <thead>
+                <tr>
+                    <th>Hole</th>
+                    <th>Par</th>
+                    <th>Strokes Given</th>
+                    <th>Strokes Taken</th>
+                    <th>Stableford Points</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hole in holes %}
+                <tr>
+                    <td>{{ hole[0] }}</td>
+                    <td>
+                        {{ hole[2] }}
+                        <input type="hidden" id="par_{{ hole[0] }}" value="{{ hole[2] }}">
+                    </td>
+                    <td>
+                        {{ hole[3] }}
+                        <input type="hidden" id="strokes_given_{{ hole[0] }}" value="{{ hole[3] }}">
+                    </td>
+                    <td>
+                        <input type="number" name="strokes_{{ hole[0] }}" id="strokes_{{ hole[0] }}" value="{{ hole[1] }}" 
+                               class="form-control text-center" required 
+                               oninput="updateStableford('{{ hole[0] }}')">
+                    </td>
+                    <td id="stableford_{{ hole[0] }}">{{ hole[4] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- ✅ Totals Section -->
+        <h4 class="text-center mt-4">
+            <span class="badge-total badge-total-strokes">Total Strokes: <span id="total_strokes">0</span></span>
+            <span class="badge-total badge-total-stableford">Total Stableford Points: <span id="total_stableford">0</span></span>
+        </h4>
+
+        <!-- ✅ Buttons -->
+        <button type="submit" class="btn btn-masters-green w-100 py-2 mt-3"><i class="fas fa-save"></i> Save Changes</button>
+    </form>
+
+    <div class="d-grid gap-2 mt-3">
+        <a href="/team_rounds/{{ team_id }}" class="btn btn-masters-gold py-2"><i class="fas fa-arrow-left"></i> Cancel & Back to Rounds</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
