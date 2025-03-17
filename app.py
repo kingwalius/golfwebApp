@@ -1065,10 +1065,13 @@ def delete_personal_round(round_id):
 if __name__ == '__main__':
     if not os.path.exists("templates"):
         os.makedirs("templates")
-    init_db()
+    
+    # FIX: Run init_db() inside app context
+    with app.app_context():
+        init_db()
+    
     PORT = int(os.environ.get('PORT', 8080))
     app.run(debug=True, use_reloader=False, host='0.0.0.0', port=PORT)
-
 
 import logging
 
