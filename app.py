@@ -100,8 +100,12 @@ class CourseDetail(db.Model):
 # =======================================
 
 def init_db():
-    db.create_all()
-    print("Database initialized!")
+    print("⚙️ [INIT] Attempting to initialize database...")
+    try:
+        db.create_all()
+        print("✅ [INIT] Database tables created successfully.")
+    except Exception as e:
+        print(f"❌ [INIT] Database initialization error: {e}")
 
 def calculate_stableford(par, net_score):
     score_diff = net_score - par
@@ -1060,6 +1064,15 @@ def delete_personal_round(round_id):
     # ✅ Redirect to user's rounds
     return redirect(url_for('user_rounds'))
 
+#------------------------------------------------------------------------------------------
+#force init db
+@app.route('/force-init-db')
+def force_init_db():
+    try:
+        db.create_all()
+        return "✅ Tables created successfully!"
+    except Exception as e:
+        return f"❌ Error creating tables: {e}"
 ###########################################################################################
 #Run the application
 
@@ -1068,14 +1081,15 @@ if __name__ == '__main__':
     if not os.path.exists("templates"):
         os.makedirs("templates")
 
-    # Controlled creation via environment variable (safe for production)
+    print(f"📡 [DATABASE] Using database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
+
     if os.environ.get('INIT_DB') == 'true':
-        print("🔨 INIT_DB is true, initializing DB now...")
+        print("🔨 [INIT] INIT_DB is true, initializing DB now...")
         with app.app_context():
             init_db()
     else:
-        print("ℹ️ INIT_DB not set or false, skipping DB init.")
-    
+        print("ℹ️ [INIT] INIT_DB not set or false, skipping DB init.")
+
     PORT = int(os.environ.get('PORT', 8080))
     app.run(debug=True, use_reloader=False, host='0.0.0.0', port=PORT)
 
