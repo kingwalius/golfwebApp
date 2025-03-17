@@ -8,10 +8,11 @@ from datetime import date
 app = Flask(__name__)
 app.secret_key = 'admin'
 
-DATABASE_URL = os.environ.get('postgresql://golf_db_uduo_user:gBjHrGnrP8gRcPJvVJKKWfTlVGhSxJ3L@dpg-cvbj3kd6l47c73aegrag-a.frankfurt-postgres.render.com/golf_db_uduo', 'sqlite:///golf_tournament.db')
+import os
+
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///golf_tournament.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 db = SQLAlchemy(app)
 
 # =======================================
