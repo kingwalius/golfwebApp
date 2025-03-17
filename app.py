@@ -860,7 +860,7 @@ def user_rounds():
     user_id = session['user_id']
     username = session['username']
 
-    # ✅ Fetch rounds with total points and course name using SQLAlchemy ORM
+    # ✅ Fetch rounds with total points and course name using SQLAlchemy ORM (Postgres compliant)
     rounds = (
         db.session.query(
             PersonalScore.date_played,
@@ -870,8 +870,12 @@ def user_rounds():
         )
         .join(Course, PersonalScore.course_id == Course.id)
         .filter(PersonalScore.user_id == user_id)
-        .group_by(PersonalScore.round_id)
-        .order_by(PersonalScore.date_played.desc())
+        .group_by(
+            PersonalScore.round_id,      # Group by round_id (needed)
+            PersonalScore.date_played,   # Also needed since selected
+            Course.name                 # Also needed since selected
+        )
+        .order_by(PersonalScore.date_played.desc())  # Order after grouping
         .all()
     )
 
