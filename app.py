@@ -1067,10 +1067,14 @@ def delete_personal_round(round_id):
 if __name__ == '__main__':
     if not os.path.exists("templates"):
         os.makedirs("templates")
-    
-    # FIX: Run init_db() inside app context
-    with app.app_context():
-        init_db()
+
+    # Controlled creation via environment variable (safe for production)
+    if os.environ.get('INIT_DB') == 'true':
+        print("🔨 INIT_DB is true, initializing DB now...")
+        with app.app_context():
+            init_db()
+    else:
+        print("ℹ️ INIT_DB not set or false, skipping DB init.")
     
     PORT = int(os.environ.get('PORT', 8080))
     app.run(debug=True, use_reloader=False, host='0.0.0.0', port=PORT)
