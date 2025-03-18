@@ -569,16 +569,27 @@ def submit_scores():
 @app.route('/add_course', methods=['GET', 'POST'])
 def add_course():
     if request.method == 'POST':
-        course_name = request.form.get('course_name').strip()
-        location = request.form.get('location').strip()
-        par = int(request.form.get('par'))
-
         try:
+            course_name = request.form.get('course_name', '').strip()
+            location = request.form.get('location', '').strip()
+            par = int(request.form.get('par', 0))  # Default to 0 if missing
+
+            if not course_name or not location:
+                return "Error: Course name and location are required!", 400  # Prevent empty values
+
+            # Check if course already exists
+            existing_course = Course.query.filter_by(name=course_name).first()
+            if existing_course:
+                return "Error: Course with this name already exists!", 400
+
             # ✅ Create and add course
             new_course = Course(name=course_name, location=location, par=par)
             db.session.add(new_course)
-            db.session.commit()  # Commit to get course_id
+            db.session.commit()  # Commit first to get course_id
             course_id = new_course.id
+
+            if not course_id:
+                return "Error: Course ID not found after commit", 500
 
             # ✅ Insert tees
             tee_colors = ['White', 'Yellow', 'Blue', 'Red', 'Orange', 'Black', 'Gold']
@@ -586,17 +597,12 @@ def add_course():
             for gender in genders:
                 for tee in tee_colors:
                     # Safely get input or use default
-                    course_rating_raw = request.form.get(f'course_rating_{gender}_{tee}', '0')
-                    slope_rating_raw = request.form.get(f'slope_rating_{gender}_{tee}', '0')
-
                     try:
-                        course_rating = float(course_rating_raw.strip()) if course_rating_raw.strip() else 0.0
-                        slope_rating = int(slope_rating_raw.strip()) if slope_rating_raw.strip() else 0
+                        course_rating = float(request.form.get(f'course_rating_{gender}_{tee}', '0') or 0.0)
+                        slope_rating = int(request.form.get(f'slope_rating_{gender}_{tee}', '0') or 0)
                     except ValueError:
-                        course_rating = 0.0
-                        slope_rating = 0
+                        course_rating, slope_rating = 0.0, 0
 
-                    # Add tee to session
                     new_tee = Tee(
                         course_id=course_id,
                         gender=gender,
@@ -608,8 +614,8 @@ def add_course():
 
             # ✅ Insert holes
             for hole_number in range(1, 19):
-                par_value = int(request.form.get(f'par_{hole_number}', 3))  # Default Par 3
-                handicap_index = int(request.form.get(f'handicap_index_{hole_number}', 18))  # Default 18
+                par_value = int(request.form.get(f'par_{hole_number}', 3) or 3)  # Default Par 3
+                handicap_index = int(request.form.get(f'handicap_index_{hole_number}', 18) or 18)  # Default 18
 
                 new_hole = Hole(
                     course_id=course_id,
@@ -621,15 +627,13 @@ def add_course():
 
             # ✅ Final commit for tees and holes
             db.session.commit()
+            return redirect(url_for('index'))
 
         except Exception as e:
             db.session.rollback()  # Rollback on error
-            print(f"Database error during course creation: {e}")
-            return redirect(url_for('add_course'))
+            print(f"❌ Database error: {e}")  # Log error in console
+            return f"Error: {str(e)}", 500  # Return error message instead of generic redirect
 
-        return redirect(url_for('index'))
-
-    # GET request — render form
     return render_template('add_course.html')
 
 #------------------------------------------------------------------------------------------
