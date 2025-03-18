@@ -373,20 +373,25 @@ def register():
     if request.method == 'POST':
         player1 = request.form.get('player1', '').strip()
         player2 = request.form.get('player2', '').strip()
-        handicap1 = request.form.get('handicap1', '').strip()
-        handicap2 = request.form.get('handicap2', '').strip()
+        handicap1 = request.form.get('handicap1')
+        handicap2 = request.form.get('handicap2')
 
-        # ✅ Input validation
+        # ✅ Validate input
         if not player1 or not player2 or not handicap1 or not handicap2:
-            return redirect(url_for('register'))
+            return "Error: All fields are required!", 400
 
+        # ✅ Convert handicaps safely
         try:
-            handicap1 = float(handicap1)
-            handicap2 = float(handicap2)
+            handicap1 = float(handicap1) if handicap1 else 0.0
+            handicap2 = float(handicap2) if handicap2 else 0.0
             avg_handicap = (handicap1 + handicap2) / 2
         except ValueError:
-            # Handle invalid float conversion
-            return redirect(url_for('register'))
+            return "Error: Invalid handicap values!", 400
+
+        # ✅ Check if the team already exists
+        existing_team = Team.query.filter_by(player1=player1, player2=player2).first()
+        if existing_team:
+            return "Error: This team already exists!", 400
 
         # ✅ Insert using SQLAlchemy
         try:
@@ -399,14 +404,12 @@ def register():
             )
             db.session.add(new_team)
             db.session.commit()
+            return redirect(url_for('index'))
         except Exception as e:
-            db.session.rollback()  # Rollback in case of error
-            print(f"Database error: {e}")
-            return redirect(url_for('register'))
+            db.session.rollback()
+            print(f"❌ Database error: {e}")
+            return f"Error: {str(e)}", 500
 
-        return redirect(url_for('index'))  # Redirect to homepage after registration
-
-    # GET request → show form
     return render_template('register.html')
 
 #------------------------------------------------------------------------------------------
