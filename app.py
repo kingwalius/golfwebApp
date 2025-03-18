@@ -652,23 +652,27 @@ def courses():
 @app.route('/delete_course/<int:course_id>', methods=['POST'])
 def delete_course(course_id):
     try:
-        # ✅ Fetch and delete related tees
-        Tee.query.filter_by(course_id=course_id).delete()
+        course = Course.query.get(course_id)
 
-        # ✅ Fetch and delete related holes
+        if not course:
+            print(f"❌ Course ID {course_id} not found.")
+            return "Error: Course not found!", 404
+
+        # ✅ Check if cascading deletion is handled by DB or needs manual deletion
+        Tee.query.filter_by(course_id=course_id).delete()
         Hole.query.filter_by(course_id=course_id).delete()
 
-        # ✅ Fetch and delete the course itself
-        course = Course.query.get(course_id)
-        if course:
-            db.session.delete(course)
-
+        # ✅ Delete the course
+        db.session.delete(course)
         db.session.commit()  # ✅ Commit all deletions
+
+        print(f"✅ Successfully deleted course ID {course_id}.")
+        return redirect(url_for('courses'))
+
     except Exception as e:
         db.session.rollback()  # Rollback on error
-        print(f"Database error during course deletion: {e}")
-
-    return redirect(url_for('courses'))
+        print(f"❌ Database error during course deletion: {e}")
+        return "Error deleting course", 500
 
 #------------------------------------------------------------------------------------------
 #Edit a course
