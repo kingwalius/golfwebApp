@@ -675,35 +675,28 @@ def delete_course(course_id):
         return "Error deleting course", 500
 
 #------------------------------------------------------------------------------------------
-#Edit a course
-@app.route('/edit_course/<int:course_id>', methods=['GET', 'POST'])
-def edit_course(course_id):
-    # ✅ Fetch the course object by ID
-    course = Course.query.get_or_404(course_id)  # 404 if course not found
+@app.route('/edit_course', methods=['GET', 'POST'])
+def edit_course():
+    courses = Course.query.all()  # Fetch all available courses
 
-    if request.method == 'POST':
-        # ✅ Get updated form data
-        course_name = request.form.get('course_name').strip()
-        location = request.form.get('location').strip()
-        par = int(request.form.get('par'))
+    # Get selected course ID from dropdown
+    course_id = request.args.get('course_id', type=int)  # Get from query string
+    course = Course.query.get(course_id) if course_id else None  # Fetch the course if selected
 
+    if request.method == 'POST' and course:
         try:
-            # ✅ Update fields
-            course.name = course_name
-            course.location = location
-            course.par = par
+            course.name = request.form.get('course_name').strip()
+            course.location = request.form.get('location').strip()
+            course.par = int(request.form.get('par'))
 
-            db.session.commit()  # ✅ Save changes
+            db.session.commit()
+            return redirect(url_for('courses'))  # Redirect after update
         except Exception as e:
-            db.session.rollback()  # Rollback on error
-            print(f"Database error during course update: {e}")
-            return redirect(url_for('edit_course', course_id=course_id))  # Optionally redirect back to form
+            db.session.rollback()
+            print(f"❌ Database error during course update: {e}")
+            return f"Error updating course: {e}", 500
 
-        return redirect(url_for('courses'))  # Redirect back to course list after update
-
-    # ✅ GET: Render the edit form with course data
-    return render_template('edit_course.html', course=course)
-
+    return render_template('edit_course.html', courses=courses, course=course)
 #------------------------------------------------------------------------------------------
 #Add a personal score
 @app.route('/personal_score', methods=['GET', 'POST'])
