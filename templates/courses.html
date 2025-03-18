@@ -20,14 +20,14 @@
                 <tbody>
                     {% for course in courses %}
                     <tr>
-                        <td>{{ course[1] }}</td>
-                        <td>{{ course[2] }}</td>
-                        <td>{{ course[3] }}</td>
+                        <td>{{ course.name }}</td>
+                        <td>{{ course.location }}</td>
+                        <td>{{ course.par }}</td>
                         <td>
-                            <form method='POST' action='/delete_course/{{ course[0] }}' style='display:inline;'>
+                            <form method='POST' action='/delete_course/{{ course.id }}' style='display:inline;'>
                                 <button type='submit' class='btn btn-danger btn-sm'>Delete</button>
                             </form>
-                            <a href='/edit_course/{{ course[0] }}' class='btn btn-warning btn-sm'>Edit</a>
+                            <a href='/edit_course/{{ course.id }}' class='btn btn-warning btn-sm'>Edit</a>
                         </td>
                     </tr>
                     {% endfor %}
