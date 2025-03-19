@@ -6,6 +6,7 @@
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="manifest" href="/static/manifest.json">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/static/service-worker.js')
@@ -81,10 +82,11 @@
             </div>
         </div>
         <div class='text-center mt-4 btn-group-mobile'>
-            <a href='/register' class='btn btn-primary'><i class="fas fa-user-plus"></i> Register Team</a>
-            <a href='/record_score' class='btn btn-secondary'><i class="fas fa-pencil-alt"></i> Record Score</a>
-            <a href='/' class='btn btn-warning'><i class="fas fa-home"></i> Back to Main Page</a>
+            <a href='/register' class='btn btn-masters-green-invert'><i class="fas fa-user-plus"></i> Register Team</a>
+            <a href='/record_score' class='btn-masters-green'><i class="fas fa-pencil-alt"></i> Record Score</a>
+            <a href='/' class='btn btn-masters-gold'><i class="fas fa-home"></i> Back to Main Page</a>
         </div>
     </div>
+    {% include 'mobile_nav.html' %}
 </body>
 </html>

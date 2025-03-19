@@ -1,0 +1,100 @@
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #fff;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0;
+  }
+  
+  .mobile-nav ul {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    justify-content: space-around;
+  }
+  
+  .nav-link {
+    text-decoration: none;
+    color: #333;
+    font-size: 18px;
+    padding: 14px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+  }
+  
+  .nav-link:hover {
+    color: #007bff;
+    background: rgba(0, 123, 255, 0.1);
+  }
+  .container {
+    max-width: 600px;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-top: 80px;
+    text-align: center;
+}
+h1 {
+    font-weight: 400;
+    margin-bottom: 20px;
+}
+.btn-lg {
+    width: 100%;
+    padding: 15px;
+    font-size: 18px;
+    border-radius: 30px;
+}
+.btn-masters-green {
+    background-color: #006400;
+    color: white;
+    border: none;
+}
+.btn-masters-green:hover {
+    background-color: #004d00;
+    color: white;
+}
+.btn-masters-gold {
+    background-color: #FFD700;
+    color: black;
+    border: none;
+}
+.btn-masters-gold:hover {
+    background-color: #e6c200;
+    color: black;
+}
+.btn-masters-green-invert {
+    background-color: white;
+    color: #006400;
+    border: 2px solid #006400;
+}
+.btn-masters-green-invert:hover {
+    background-color: #006400;
+    color: white;
+}
+  
+  /* Enhancing button sizes and spacing for touch-friendliness */
+  button, .btn {
+    padding: 12px 18px;
+    font-size: 18px;
+    border-radius: 10px;
+  }
+  
+  /* Lazy Loading for images */
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: auto;
+    /* The 'loading' attribute should be added directly to the <img> tag in HTML */
+  }
+  
+  /* Lazy Loading for JavaScript & CSS */
+  /* Use JavaScript to handle dynamic stylesheet loading for link[rel="stylesheet"] */
+  
+  /* No CSS properties are needed here for defer functionality */
