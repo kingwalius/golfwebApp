@@ -6,7 +6,7 @@
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: space-around;
-    padding: 12px 0;
+    padding: 8px 0;
   }
   
   .mobile-nav ul {
@@ -20,6 +20,7 @@
   
   .nav-link {
     text-decoration: none;
+    font-weight: 600;
     color: #333;
     font-size: 18px;
     padding: 14px;
@@ -28,6 +29,10 @@
   }
   
   .nav-link:hover {
+    .nav-link {
+  font-weight: 600;
+  color: #222 !important;
+}
     color: #007bff;
     background: rgba(0, 123, 255, 0.1);
   }
@@ -44,6 +49,11 @@ h1 {
     font-weight: 400;
     margin-bottom: 20px;
 }
+.btn {
+    width: 100%;
+    max-width: 100px; /* Limits button width */
+    padding: 10px 12px; /* Reduces excess padding */
+  }
 .btn-lg {
     width: 100%;
     padding: 15px;
