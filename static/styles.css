@@ -61,18 +61,22 @@ h1 {
     font-size: 16px;
     padding: 12px;
   }
-.action-buttons {
+  .action-buttons {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px; /* Adds spacing between buttons */
+    gap: 5px; /* Ensures proper spacing */
   }
   
   .btn {
-    width: 90px; /* Ensures uniform width */
-    height: 40px; /* Sets button height */
+    width: 90px; /* Uniform width */
+    height: 40px; /* Uniform height */
     font-size: 14px; /* Prevents text overflow */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
+
 .btn-lg {
     width: 100%;
     padding: 15px;
