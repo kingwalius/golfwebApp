@@ -1,14 +1,20 @@
   .mobile-nav {
     position: fixed;
     bottom: 0;
+    left: 0;
     width: 100%;
     background-color: #fff;
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: space-around;
-    padding: 8px 0;
+    padding: 10px 0;
+    z-index: 1000; /* Ensure it stays above content */
   }
   
+  body {
+    padding-bottom: 60px; /* Reserve space for navbar */
+  }
+
   .mobile-nav ul {
     display: flex;
     list-style: none;
@@ -49,10 +55,23 @@ h1 {
     font-weight: 400;
     margin-bottom: 20px;
 }
-.btn {
-    width: 100%;
-    max-width: 100px; /* Limits button width */
-    padding: 10px 12px; /* Reduces excess padding */
+.play-round-btn {
+    width: 90%;
+    max-width: 250px;
+    font-size: 16px;
+    padding: 12px;
+  }
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px; /* Adds spacing between buttons */
+  }
+  
+  .btn {
+    width: 90px; /* Ensures uniform width */
+    height: 40px; /* Sets button height */
+    font-size: 14px; /* Prevents text overflow */
   }
 .btn-lg {
     width: 100%;
