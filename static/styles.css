@@ -7,7 +7,7 @@
     box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: space-around;
-    padding: 10px 0;
+    padding: 8px 0;
     z-index: 1000; /* Ensure it stays above content */
   }
   
@@ -56,10 +56,13 @@ h1 {
     margin-bottom: 20px;
 }
 .play-round-btn {
-    width: 90%;
-    max-width: 250px;
+    width: 80%;
+    max-width: 220px;
     font-size: 16px;
-    padding: 12px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .action-buttons {
     display: flex;
