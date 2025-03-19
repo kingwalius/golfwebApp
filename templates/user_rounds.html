@@ -70,14 +70,11 @@
         </thead>
         <tbody>
             {% for round in rounds %}
-            <tr>
+            <tr class="clickable-row" data-href="/round_detail/{{ round[3] }}">
                 <td>{{ round[0] }}</td>
                 <td>{{ round[1] }}</td>
                 <td><strong>{{ round[2] }}</strong></td>
                 <td>
-                    <a href="/round_detail/{{ round[3] }}" class="btn btn-masters-green-invert btn-sm">
-                        <i class="fas fa-eye"></i> View
-                    </a>
                     <a href="/edit_personal_round/{{ round[3] }}" class="btn btn-masters-green-invert btn-sm">
                         <i class="fas fa-edit"></i> Edit
                     </a>
@@ -97,8 +94,8 @@
 
     <!-- Action Buttons -->
     <div class="d-grid gap-3 mt-4">
-        <a href='/personal_score' class='btn btn-masters-green'><i class="fas fa-golf-ball-tee"></i> Play a Round</a>
-        <a href='/' class='btn btn-masters-green-invert'><i class="fas fa-arrow-left"></i> Back to Home</a>
+        <a href='/personal_score' class='btn btn-masters-green'><i class="fas fa-golf-ball-tee"></i>Play</a>
+        <a href='/' class='btn btn-masters-green-invert'><i class="fas fa-arrow-left"></i>Back</a>
     </div>
 </div>
 
