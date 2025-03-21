@@ -127,10 +127,10 @@
     {% endif %}
     <!-- Edit & Delete Buttons -->
     <div class="d-flex justify-content-center mt-3 gap-3">
-        <a href="/edit_personal_round/{{ round.id }}" class="btn btn-success">
+        <a href="/edit_personal_round/{{ round_id }}" class="btn btn-success">
             <i class="fas fa-edit"></i>Edit
         </a>
-        <form action="/delete_personal_round/{{ round.id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this round?');">
+        <form action="/delete_personal_round/{{ round_id }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this round?');">
             <button type="submit" class="btn btn-danger">
                 <i class="fas fa-trash"></i>Delete
             </button>

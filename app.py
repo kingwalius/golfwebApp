@@ -931,6 +931,7 @@ def round_detail(round_id):
         holes=holes_data,
         total_strokes=total_strokes,
         total_stableford=total_stableford
+        round_id=round_id 
     )
 
 #------------------------------------------------------------------------------------------
