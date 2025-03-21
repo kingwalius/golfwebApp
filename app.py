@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import os
@@ -223,17 +224,24 @@ def tournament():
 
 #------------------------------------------------------------------------------------------
 #team rounds view
-@app.route('/team_rounds/<int:team_id>')
+@app.route('/team_rounds/<team_id>')
 def team_rounds(team_id):
-    rounds = (
-        db.session.query(Score.date_played, Course.name, db.func.sum(Score.stableford_points), Score.round_id)
+    # ✅ Fetch list of rounds played by a team
+    team_rounds = (
+        db.session.query(
+            Score.date_played,
+            Course.name,
+            func.sum(Score.stableford_points),
+            Score.round_id
+        )
         .join(Course, Score.course_id == Course.id)
         .filter(Score.team_id == team_id)
-        .group_by(Score.round_id)
+        .group_by(Score.round_id, Score.date_played, Course.name)  # ✅ Fix here
         .order_by(Score.date_played.desc())
         .all()
     )
-    return render_template('team_rounds.html', rounds=rounds)
+
+    return render_template('team_rounds.html', rounds=team_rounds, team_id=team_id)
 
 #------------------------------------------------------------------------------------------
 #edit team round
@@ -362,7 +370,8 @@ def team_round_detail(round_id):
         round_info=round_info,
         holes=holes_data,
         total_strokes=total_strokes,
-        total_stableford=total_points,  # renamed to total_stableford for template consistency
+        total_stableford=total_points,
+        round_id=round_id,
         team_id=round_id  # Enables back button to team rounds
     )
 
