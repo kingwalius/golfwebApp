@@ -9,34 +9,35 @@
     <body>
         <div class='container mt-4'>
             <h1 class='text-center'>Available Golf Courses</h1>
-            <a href='/add_course' class='btn btn-success mb-3'>Add Course</a>
+            <a href='/add_course' class='btn btn-success mb-3'>Add</a>
             <table class='table table-striped'>
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>Location</th>
                         <th>Par</th>
-                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for course in courses %}
-                    <tr>
+                    <tr class="clickable-row" data-href="/edit_course/{{ course.id }}">
                         <td>{{ course.name }}</td>
                         <td>{{ course.location }}</td>
                         <td>{{ course.par }}</td>
-                        <td>
-                            <form method='POST' action='/delete_course/{{ course.id }}' style='display:inline;'>
-                                <button type='submit' class='btn btn-danger btn-sm'>Delete</button>
-                            </form>
-                            <a href='/edit_course/{{ course.id }}' class='btn btn-warning btn-sm'>Edit</a>
-                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            <a href='/' class='btn btn-secondary'>Back to Home</a>
         </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                document.querySelectorAll(".clickable-row").forEach(row => {
+                    row.addEventListener("click", function () {
+                        window.location = this.dataset.href;
+                    });
+                });
+            });
+            </script>
         <nav class="mobile-nav"> 
             <ul>
                 <li><a href="{{ url_for('main') }}" class="nav-link">Back</a></li>
