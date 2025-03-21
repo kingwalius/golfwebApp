@@ -294,10 +294,13 @@ def edit_team_round(round_id):
         return redirect(url_for('team_rounds', team_id=team_id))
 
     # GET method (render form)
+    # GET method (render form)
     team = Team.query.get(team_id)
     team_handicap = team.avg_handicap
+
     tee = Tee.query.filter_by(course_id=course_id).first()
-    playing_handicap = calculate_playing_handicap(team_handicap, tee.course_rating, tee.slope_rating, tee.par)
+    course = Course.query.get(course_id)  # ✅ get par
+    playing_handicap = calculate_playing_handicap(team_handicap, tee.course_rating, tee.slope_rating, course.par)
 
     holes_data = Hole.query.filter_by(course_id=course_id).order_by(Hole.hole_number).all()
     extra_strokes = playing_handicap % 18
