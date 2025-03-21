@@ -247,13 +247,15 @@ def team_rounds(team_id):
 #edit team round
 @app.route('/edit_team_round/<round_id>', methods=['GET', 'POST'])
 def edit_team_round(round_id):
+    score_sample = Score.query.filter_by(round_id=round_id).first()
+    if not score_sample:
+        return "Round not found", 404
+
+    team_id = score_sample.team_id
+    course_id = score_sample.course_id
+
     if request.method == 'POST':
         date_played = request.form.get('date_played')
-
-        # Fetch team_id and course_id
-        score_sample = Score.query.filter_by(round_id=round_id).first()
-        team_id = score_sample.team_id
-        course_id = score_sample.course_id
 
         # Fetch avg handicap for team
         team = Team.query.get(team_id)
@@ -289,11 +291,8 @@ def edit_team_round(round_id):
         db.session.commit()
 
         return redirect(url_for('team_rounds', team_id=team_id))
-    
-    # GET method
-        score_sample = Score.query.filter_by(round_id=round_id).first()
-    team_id = score_sample.team_id
-    course_id = score_sample.course_id
+
+    # GET method (render form)
     team = Team.query.get(team_id)
     team_handicap = team.avg_handicap
     tee = Tee.query.filter_by(course_id=course_id).first()
@@ -311,9 +310,14 @@ def edit_team_round(round_id):
         stableford_points = score.stableford_points
         holes.append((hole.hole_number, strokes, hole.par, strokes_given, stableford_points))
 
-    return render_template('edit_team_round.html', team_id=team_id, round_id=round_id, holes=holes,
-                           playing_handicap=playing_handicap, date_played=score_sample.date_played)
-    
+    return render_template(
+        'edit_team_round.html',
+        team_id=team_id,
+        round_id=round_id,
+        holes=holes,
+        playing_handicap=playing_handicap,
+        date_played=score_sample.date_played
+    )
 #------------------------------------------------------------------------------------------
 #delete team round
 @app.route('/delete_team_round/<round_id>', methods=['POST'])
