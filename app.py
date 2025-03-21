@@ -930,7 +930,7 @@ def round_detail(round_id):
         round_info=round_info_query,
         holes=holes_data,
         total_strokes=total_strokes,
-        total_stableford=total_stableford
+        total_stableford=total_stableford,
         round_id=round_id 
     )
 
