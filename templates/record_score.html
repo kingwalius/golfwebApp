@@ -152,6 +152,11 @@
         return 0;
     }
 </script>
-{% include 'mobile_nav.html' %}
+<nav class="mobile-nav"> 
+    <ul>
+        <li><a href="{{ url_for('tournament') }}" class="nav-link">Tournament</a></li>
+        <li><a href="{{ url_for('main') }}" class="nav-link">Back</a></li>
+      </ul>
+    </nav>   
 </body>
 </html>
