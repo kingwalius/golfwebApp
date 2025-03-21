@@ -50,7 +50,7 @@
             <label>Date Played:</label>
             <input type='date' name='date_played' class='form-control' value='{{ date_played }}' required>
         </div>
-        <button type='submit' class='btn btn-masters-green w-100 py-2'>Calculate</button>
+        <button type='submit' class='btn btn-masters-green btn-transition  w-100 py-2'>Calculate</button>
     </form>
 
     <hr>
@@ -90,7 +90,7 @@
                 </tbody>
             </table>
         </div>
-        <button type='submit' class='btn btn-masters-green-invert w-100 py-2' {% if holes|length < 18 %}disabled{% endif %}>Save Score</button>
+        <button type='submit' class='btn btn-masters-green-invert btn-transition  w-100 py-2' {% if holes|length < 18 %}disabled{% endif %}>Save Score</button>
     </form>
     {% endif %}
 </div>
