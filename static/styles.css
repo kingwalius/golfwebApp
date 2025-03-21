@@ -127,11 +127,20 @@ h1 {
     background-color: #006400;
     color: white;
 }
-.locked-row {
-  background-color: #006400;
-    color: white;
+/* Style for locked scorecard rows */
+tr.locked-row {
+  background-color: #006400 !important;
+  color: white !important;
 }
-  
+
+tr.locked-row td {
+  background-color: #006400 !important;
+  color: white !important;
+}
+
+tr.locked-row:hover {
+  background-color: #006400 !important;
+}
   /* Enhancing button sizes and spacing for touch-friendliness */
   button, .btn {
     padding: 12px 18px;
