@@ -30,37 +30,41 @@
                     <th>Team</th>
                     <th>Avg. Handicap</th>
                     <th>Total Stableford (Top 3 Rounds)</th>
-                    <th>Rounds</th>
                 </tr>
             </thead>
             <tbody>
                 {% for team in teams %}
-                <tr>
+                <tr class="clickable-row" data-href="/team_rounds/{{ team[0] }}">
                     <td>{{ loop.index }}</td>
                     <td>{{ team[1] }}</td>
-                    <td>{{ team[2] }}</td>
-                    <td><strong>{{ team[3] }}</strong></td>
-                    <td>
-                        <a href="/team_rounds/{{ team[0] }}" class="btn btn-masters-green-invert btn-sm">
-                            <i class="fas fa-eye"></i> View Rounds
-                        </a>
-                    </td>
+                    <td>{{ '%.2f'|format(team[2]) }}</td>
+                    <td>{{ team[3] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-
-    <!-- Action Buttons -->
-    <div class='d-grid gap-3 mt-4'>
-        <a href='/register' class='btn btn-masters-gold'><i class="fas fa-user-plus"></i> Register Team</a>
-        <a href='/record_score' class='btn btn-masters-green'><i class="fas fa-pencil-alt"></i> Record Score</a>
-        <a href='/' class='btn btn-masters-green-invert'><i class="fas fa-arrow-left"></i> Back to Main Menu</a>
-    </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-{% include 'mobile_nav.html' %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll(".clickable-row").forEach(row => {
+            row.addEventListener("click", function(event) {
+                // Ignore clicks on actual links or buttons
+                if (!event.target.closest("a") && !event.target.closest("button")) {
+                    window.location = this.dataset.href;
+                }
+            });
+        });
+    });
+    </script>
+<nav class="mobile-nav"> 
+    <ul>
+      <li><a href="/register" class="nav-link"><i class="fas fa-user-plus"></i><br>Register</a></li>
+      <li><a href="/record_score" class="nav-link"><i class="fas fa-pencil-alt"></i><br>Score</a></li>
+      <li><a href="/" class="nav-link"><i class="fas fa-arrow-left"></i><br>Back</a></li>
+    </ul>
+  </nav>
 </body>
 </html>
