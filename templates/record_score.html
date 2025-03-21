@@ -18,16 +18,60 @@
     <h2 class='text-center text-success mb-4'><i class="fas"></i> Record Team Score</h2>
 
     <form method='POST' action='/record_score'>
-        <!-- Course, Team, Gender, Tee selections -->
-        <!-- [Unchanged select blocks here] -->
+        <div class='mb-3'>
+            <label>Select Course:</label>
+            <select name='course_id' class='form-control' required>
+                <option value=''>-- Select a Course --</option>
+                {% for course in courses %}
+                <option value='{{ course[0] }}' {% if course[0]|string == selected_course|string %}selected{% endif %}>{{ course[1] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class='mb-3'>
+            <label>Select Team:</label>
+            <select name='team_id' class='form-control' required>
+                <option value=''>-- Select a Team --</option>
+                {% for team in teams %}
+                <option value='{{ team[0] }}' {% if team[0]|string == selected_team|string %}selected{% endif %}>{{ team[1] }} & {{ team[2] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class='mb-3'>
+            <label>Gender:</label>
+            <select name='gender' class='form-control' required>
+                <option value='Men' {% if selected_gender == "Men" %}selected{% endif %}>Men</option>
+                <option value='Women' {% if selected_gender == "Women" %}selected{% endif %}>Women</option>
+            </select>
+        </div>
+        <div class='mb-3'>
+            <label>Select Tee:</label>
+            <select name='tee_color' class='form-control' required>
+                {% for color in ["White", "Yellow", "Blue", "Red", "Orange", "Black", "Gold"] %}
+                <option value='{{ color }}' {% if selected_tee == color %}selected{% endif %}>{{ color }}</option>
+                {% endfor %}
+            </select>
+        </div>
         <button type='submit' class='btn btn-masters-green w-100 py-2'>Load Data</button>
     </form>
 
     {% if holes %}
     <hr>
     <form method='POST' action='/submit_scores'>
-        <!-- Hidden inputs -->
-        <!-- Handicap / date fields -->
+        <input type='hidden' name='team_id' value='{{ selected_team }}'>
+        <input type='hidden' name='course_id' value='{{ selected_course }}'>
+
+        <div class='mb-3'>
+            <label>Team Handicap:</label>
+            <input type='text' class='form-control' value='{{ team_handicap }}' readonly>
+        </div>
+        <div class='mb-3'>
+            <label>Playing Handicap (Adjusted):</label>
+            <input type='text' class='form-control' value='{{ playing_handicap }}' readonly>
+        </div>
+        <div class='mb-3'>
+            <label>Date Played:</label>
+            <input type="date" name="date_played" class="form-control" required>
+        </div>
 
         <div class="table-responsive">
             <table class='table table-hover text-center'>
@@ -43,16 +87,16 @@
                 </thead>
                 <tbody>
                     {% for hole in holes %}
-                    <tr id="row_{{ hole[0] }}" ontouchstart="handleTouchStart(event, {{ hole[0] }})" ontouchend="handleTouchEnd(event, {{ hole[0] }})">
+                    <tr id="row_{{ hole[0] }}" ontouchstart="handleTouchStart(event, '{{ hole[0] }}')" ontouchend="handleTouchEnd(event, '{{ hole[0] }}')">
                         <td><strong>{{ hole[0] }}</strong></td>
                         <td>{{ hole[1] }}</td>
                         <td>{{ hole[2] }}</td>
                         <td>
                             <div class="input-group justify-content-center">
-                                <button type="button" class="btn btn-outline-secondary" onclick="adjustScore({{ hole[0] }}, -1)">–</button>
-                                <input type="number" name="strokes_{{ hole[0] }}" id="strokes_hole_{{ hole[0] }}" class="form-control text-center" required style="max-width: 60px;" oninput="updateStableford({{ hole[0] }})">
-                                <button type="button" class="btn btn-outline-secondary" onclick="adjustScore({{ hole[0] }}, 1)">+</button>
-                            </div>
+                                <button type="button" class="btn btn-outline-secondary" onclick="adjustScore('{{ hole[0] }}, -1')"">–</button>
+                                <input type="number" name="strokes_{{ hole[0] }}" id="strokes_hole_{{ hole[0] }}" class="form-control text-center" required style="max-width: 60px;" oninput="updateStableford('{{ hole[0] }}')"">
+                                <button type="button" class="btn btn-outline-secondary" onclick="adjustScore('{{ hole[0] }}, 1')"">+</button>
+                            </div>                            </div>
                         </td>
                         <td id="stableford_hole_{{ hole[0] }}">-</td>
                         <td>
