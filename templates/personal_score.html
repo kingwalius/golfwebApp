@@ -9,69 +9,8 @@
     <style>
         body { background-color: #f8f9f8; font-family: 'Arial', sans-serif; }
         .container { max-width: 900px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 40px; }
-        .btn-masters-green { background-color: #006400; color: white; border-radius: 30px; }
-        .btn-masters-green:hover { background-color: #004d00; }
-        .btn-masters-gold { background-color: #FFD700; color: black; border-radius: 30px; }
-        .btn-masters-gold:hover { background-color: #e6c200; }
-        .table th, .table td { vertical-align: middle; }
-        .table th {
-            background-color: #004d00;
-            color: #333;
-        }
-        .table thead th {
-            color: #ffffff; 
-            font-weight: bold;
-        }
-        .btn-masters-green-invert {
-            background-color: white;
-            color: #006400;
-            border: none;
-            border-radius: 25px;
-        }
-        .btn-masters-green-invert:hover {
-            background-color: #006400;
-            color: white;
-            border: none;
-            border-radius: 25px;
-        }
+        .locked-row { background-color: #e9e9e9; }
     </style>
-
-    <script>
-        function toggleFixed(holeId) {
-            let input = document.getElementById('strokes_hole_' + holeId);
-            let button = document.getElementById('toggle_hole_' + holeId);
-            let stablefordDisplay = document.getElementById('stableford_hole_' + holeId);
-            let hiddenField = document.getElementById('hidden_stableford_points_' + holeId);
-
-            if (input.readOnly) {
-                input.readOnly = false;
-                button.innerText = 'Open';
-                stablefordDisplay.innerText = '-';
-                hiddenField.value = '';
-            } else {
-                input.readOnly = true;
-                button.innerText = 'Fixed';
-                let strokesTaken = parseInt(input.value) || 0;
-                let par = parseInt(document.querySelector('#strokes_hole_' + holeId).parentElement.previousElementSibling.previousElementSibling.innerText);
-                let strokesGiven = parseInt(document.querySelector('#strokes_hole_' + holeId).parentElement.previousElementSibling.innerText);
-                let netScore = strokesTaken - strokesGiven;
-                let stablefordPoints = calculateStableford(par, netScore);
-                stablefordDisplay.innerText = stablefordPoints;
-                hiddenField.value = stablefordPoints;
-            }
-        }
-
-        function calculateStableford(par, netScore) {
-            let scoreDiff = netScore - par;
-            if (scoreDiff <= -4) return 6;
-            if (scoreDiff === -3) return 5;
-            if (scoreDiff === -2) return 4;
-            if (scoreDiff === -1) return 3;
-            if (scoreDiff === 0) return 2;
-            if (scoreDiff === 1) return 1;
-            return 0;
-        }
-    </script>
 </head>
 <body>
 
@@ -98,9 +37,9 @@
         <div class='mb-3'>
             <label>Select Tee:</label>
             <select name='tee_color' class='form-control' required>
-                <option value='White' {% if selected_tee == 'White' %}selected{% endif %}>White</option>
-                <option value='Yellow' {% if selected_tee == 'Yellow' %}selected{% endif %}>Yellow</option>
-                <option value='Red' {% if selected_tee == 'Red' %}selected{% endif %}>Red</option>
+                {% for color in ["White", "Yellow", "Blue", "Red", "Orange", "Black", "Gold"] %}
+                <option value='{{ color }}' {% if selected_tee == color %}selected{% endif %}>{{ color }}</option>
+                {% endfor %}
             </select>
         </div>
         <div class='mb-3'>
@@ -117,7 +56,6 @@
     <hr>
 
     {% if holes %}
-    <!-- Score input form -->
     <form method='POST' action='/submit_personal_score'>
         <input type='hidden' name='course_id' value='{{ selected_course }}'>
         <input type='hidden' name='date_played' value='{{ date_played }}'>
@@ -135,15 +73,17 @@
                 </thead>
                 <tbody>
                     {% for hole in holes %}
-                    <tr>
+                    <tr id="row_{{ hole[0] }}" ontouchstart="handleTouchStart(event, '{{ hole[0] }}')" ontouchend="handleTouchEnd(event, '{{ hole[0] }}')">
                         <td><strong>{{ hole[0] }}</strong></td>
                         <td>{{ hole[1] }}</td>
                         <td>{{ hole[2] }}</td>
-                        <td><input type='number' name='strokes_{{ hole[0] }}' id='strokes_hole_{{ hole[0] }}' class='form-control text-center' required></td>
-                        <td id='stableford_hole_{{ hole[0] }}'>-</td>
                         <td>
-                            <button type='button' id='toggle_hole_{{ hole[0] }}' class='btn btn-sm btn-masters-green-invert' onclick='toggleFixed("{{ hole[0] }}")'>Open</button>
-                            <input type='hidden' name='stableford_points_{{ hole[0] }}' id='hidden_stableford_points_{{ hole[0] }}'>
+                            <input type="number" inputmode="numeric" pattern="[0-9]*" name="strokes_{{ hole[0] }}" id="strokes_hole_{{ hole[0] }}" class="form-control text-center" required oninput="updateStableford('{{ hole[0] }}')">
+                        </td>
+                        <td id="stableford_hole_{{ hole[0] }}">-</td>
+                        <td>
+                            <input type="hidden" name="stableford_points_{{ hole[0] }}" id="hidden_stableford_points_{{ hole[0] }}">
+                            <input type="hidden" id="locked_{{ hole[0] }}" name="locked_{{ hole[0] }}" value="false">
                         </td>
                     </tr>
                     {% endfor %}
@@ -155,12 +95,70 @@
     {% endif %}
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let touchStartX = null;
+
+function updateStableford(holeId) {
+    const input = document.getElementById('strokes_hole_' + holeId);
+    const par = parseInt(input.closest('tr').children[1].innerText);
+    const strokesGiven = parseInt(input.closest('tr').children[2].innerText);
+    const strokesTaken = parseInt(input.value) || 0;
+
+    const netScore = strokesTaken - strokesGiven;
+    const stableford = calculateStableford(par, netScore);
+
+    document.getElementById('stableford_hole_' + holeId).innerText = stableford;
+    document.getElementById('hidden_stableford_points_' + holeId).value = stableford;
+}
+
+function calculateStableford(par, netScore) {
+    const scoreDiff = netScore - par;
+    if (scoreDiff <= -4) return 6;
+    if (scoreDiff === -3) return 5;
+    if (scoreDiff === -2) return 4;
+    if (scoreDiff === -1) return 3;
+    if (scoreDiff === 0) return 2;
+    if (scoreDiff === 1) return 1;
+    return 0;
+}
+
+function handleTouchStart(event, holeId) {
+    touchStartX = event.changedTouches[0].screenX;
+}
+
+function handleTouchEnd(event, holeId) {
+    const touchEndX = event.changedTouches[0].screenX;
+    const deltaX = touchEndX - touchStartX;
+
+    if (deltaX > 50) lockHole(holeId);     // swipe right
+    if (deltaX < -50) unlockHole(holeId);  // swipe left
+}
+
+function lockHole(holeId) {
+    const row = document.getElementById('row_' + holeId);
+    const input = document.getElementById('strokes_hole_' + holeId);
+    input.readOnly = true;
+    row.classList.add('locked-row');
+    document.getElementById('locked_' + holeId).value = 'true';
+    updateStableford(holeId);
+}
+
+function unlockHole(holeId) {
+    const row = document.getElementById('row_' + holeId);
+    const input = document.getElementById('strokes_hole_' + holeId);
+    input.readOnly = false;
+    row.classList.remove('locked-row');
+    document.getElementById('locked_' + holeId).value = 'false';
+    document.getElementById('stableford_hole_' + holeId).innerText = '-';
+    document.getElementById('hidden_stableford_points_' + holeId).value = '';
+}
+</script>
+
 <nav class="mobile-nav two-items"> 
     <ul>
         <li><a href="{{ url_for('courses') }}" class="nav-link">Courses</a></li>
         <li><a href="{{ url_for('user_rounds') }}" class="nav-link">Back</a></li>
-      </ul>
-    </nav>   
+    </ul>
+</nav>   
 </body>
 </html>
