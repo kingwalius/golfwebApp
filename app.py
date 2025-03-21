@@ -224,7 +224,7 @@ def tournament():
 
 #------------------------------------------------------------------------------------------
 #team rounds view
-@app.route('/team_rounds/<team_id>')
+@app.route('/team_rounds/<int:team_id>')
 def team_rounds(team_id):
     # ✅ Fetch list of rounds played by a team
     team_rounds = (
@@ -380,7 +380,7 @@ def team_round_detail(round_id):
         total_strokes=total_strokes,
         total_stableford=total_points,
         round_id=round_id,
-        team_id=round_id  # Enables back button to team rounds
+        team_id=team.id # Enables back button to team rounds
     )
 
 #------------------------------------------------------------------------------------------
