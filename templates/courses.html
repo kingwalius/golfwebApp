@@ -20,7 +20,7 @@
                 </thead>
                 <tbody>
                     {% for course in courses %}
-                    <tr class="clickable-row" data-href="/edit_course/{{ course.id }}">
+                    <tr class="clickable-row" data-href="/edit_course?course_id={{ course.id }}">
                         <td>{{ course.name }}</td>
                         <td>{{ course.location }}</td>
                         <td>{{ course.par }}</td>
