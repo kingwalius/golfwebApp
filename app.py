@@ -263,7 +263,8 @@ def edit_team_round(round_id):
 
         # Fetch course ratings
         tee = Tee.query.filter_by(course_id=course_id).first()
-        playing_handicap = calculate_playing_handicap(team_handicap, tee.course_rating, tee.slope_rating, tee.par)
+        course = Course.query.get(course_id)
+        playing_handicap = calculate_playing_handicap(team_handicap, tee.course_rating, tee.slope_rating, course.par)
 
         # Calculate strokes_given
         holes_data = Hole.query.filter_by(course_id=course_id).order_by(Hole.hole_number).all()
