@@ -74,16 +74,6 @@
                 <td>{{ round[0] }}</td>
                 <td>{{ round[1] }}</td>
                 <td><strong>{{ round[2] }}</strong></td>
-                <td>
-                    <a href="/edit_personal_round/{{ round[3] }}" class="btn btn-masters-green-invert btn-sm">
-                        <i class="fas fa-edit"></i> Edit
-                    </a>
-                    <form action="/delete_personal_round/{{ round[3] }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this round?');">
-                        <button type="submit" class="btn btn-masters-gold btn-sm">
-                            <i class="fas fa-trash"></i> Delete
-                        </button>
-                    </form>
-                </td>
             </tr>
             {% endfor %}
         </tbody>
