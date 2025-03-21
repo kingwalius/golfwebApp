@@ -697,26 +697,78 @@ def delete_course(course_id):
 #------------------------------------------------------------------------------------------
 @app.route('/edit_course', methods=['GET', 'POST'])
 def edit_course():
-    courses = Course.query.all()  # Fetch all available courses
+    course_id = request.args.get('course_id')
 
-    # Get selected course ID from dropdown
-    course_id = request.args.get('course_id', type=int)  # Get from query string
-    course = Course.query.get(course_id) if course_id else None  # Fetch the course if selected
+    courses = Course.query.all()
+    course = Course.query.get(course_id) if course_id else None
 
     if request.method == 'POST' and course:
-        try:
-            course.name = request.form.get('course_name').strip()
-            course.location = request.form.get('location').strip()
-            course.par = int(request.form.get('par'))
+        # Update main course info
+        course.name = request.form.get('course_name')
+        course.location = request.form.get('location')
+        course.par = request.form.get('par')
+        db.session.commit()
 
+        # Update per-hole data
+        for hole_number in range(1, 19):
+            hole = Hole.query.filter_by(course_id=course.id, hole_number=hole_number).first()
+            if hole:
+                hole.par = request.form.get(f'par_{hole_number}')
+                hole.handicap_index = request.form.get(f'handicap_index_{hole_number}')
             db.session.commit()
-            return redirect(url_for('courses'))  # Redirect after update
-        except Exception as e:
-            db.session.rollback()
-            print(f"❌ Database error during course update: {e}")
-            return f"Error updating course: {e}", 500
 
-    return render_template('edit_course.html', courses=courses, course=course)
+        # Update per-tee data
+        for gender in ['Men', 'Women']:
+            for tee_color in ['White', 'Yellow', 'Blue', 'Red', 'Orange', 'Black', 'Gold']:
+                cr_key = f'course_rating_{gender}_{tee_color}'
+                sr_key = f'slope_rating_{gender}_{tee_color}'
+
+                course_rating = request.form.get(cr_key)
+                slope_rating = request.form.get(sr_key)
+
+                # Skip empty fields
+                if not course_rating or not slope_rating:
+                    continue
+
+                tee = Tee.query.filter_by(course_id=course.id, gender=gender, tee_color=tee_color).first()
+                if tee:
+                    tee.course_rating = course_rating
+                    tee.slope_rating = slope_rating
+                else:
+                    # Create new tee if it doesn't exist yet
+                    new_tee = Tee(
+                        course_id=course.id,
+                        gender=gender,
+                        tee_color=tee_color,
+                        course_rating=course_rating,
+                        slope_rating=slope_rating
+                    )
+                    db.session.add(new_tee)
+
+        db.session.commit()
+        return redirect(url_for('edit_course', course_id=course.id))
+
+    # GET: prepare form with current values
+    holes = []
+    if course:
+        holes = Hole.query.filter_by(course_id=course.id).order_by(Hole.hole_number).all()
+
+    # Build tee data structure for template: tee_data[gender][tee_color]
+    tee_data = {gender: {tee: None for tee in ['White', 'Yellow', 'Blue', 'Red', 'Orange', 'Black', 'Gold']} for gender in ['Men', 'Women']}
+    if course:
+        for tee in Tee.query.filter_by(course_id=course.id).all():
+            tee_data[tee.gender][tee.tee_color] = {
+                'course_rating': tee.course_rating,
+                'slope_rating': tee.slope_rating
+            }
+
+    return render_template(
+        'edit_course.html',
+        courses=courses,
+        course=course,
+        holes=holes,
+        tee_data=tee_data
+    )
 #------------------------------------------------------------------------------------------
 #Add a personal score
 @app.route('/personal_score', methods=['GET', 'POST'])
