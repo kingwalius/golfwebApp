@@ -2,6 +2,8 @@ const CACHE_NAME = 'golf-app-v2';
 const STATIC_ASSETS = [
   '/',
   '/offline',
+  '/personal_score',
+  '/record_score',
   '/static/styles.css',
   '/static/manifest.json',
   '/static/icons/icon_192.png',
@@ -9,13 +11,13 @@ const STATIC_ASSETS = [
   '/static/icons/apple-touch-icon.png',
 ];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
-});
+self.addEventListener('install', function (event) {
+    event.waitUntil(
+      caches.open(CACHE_NAME).then(function (cache) {
+        return cache.addAll(STATIC_ASSETS);
+      })
+    );
+  });
 
 // ✅ Handle fetch with dynamic route support
 self.addEventListener('fetch', (event) => {
