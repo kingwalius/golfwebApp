@@ -1151,6 +1151,13 @@ def force_init_db():
         return "✅ Tables created successfully!"
     except Exception as e:
         return f"❌ Error creating tables: {e}"
+    
+#------------------------------------------------------------------------------------------
+#offline
+@app.route('/offline')
+def offline():
+    return render_template('offline.html')
+
 ###########################################################################################
 #Run the application
 
