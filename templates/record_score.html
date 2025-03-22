@@ -188,5 +188,12 @@ function unlockHole(holeId) {
       });
     }
   </script>
+  <script>
+    if ('caches' in window && navigator.serviceWorker && navigator.serviceWorker.controller) {
+      caches.open('golf-app-v2').then(cache => {
+        cache.add(window.location.href);
+      });
+    }
+  </script>
 </body>
 </html>
