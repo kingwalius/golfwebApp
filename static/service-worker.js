@@ -5,8 +5,9 @@ self.addEventListener('install', (event) => {
                 '/',
                 '/static/manifest.json',
                 '/static/styles.css',
-                '/static/icons/Icon_192.png',
-                '/static/icons/Icon_512.png'
+                '/static/icons/icon_192.png',
+                '/static/icons/icon_512.png',
+                '/static/icons/apple-touch-icon.png',
             ]);
         })
     );
