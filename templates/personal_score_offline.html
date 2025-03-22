@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Offline Score Entry</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/styles.css">
+  <style>
+    .locked-row { background-color: #ccc; }
+    .offline-warning { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Personal Score (Offline Mode)</h2>
+  <p class="offline-warning">You're offline — your scores will be saved locally.</p>
+
+  <form id="offline-score-form">
+    <table class="table text-center">
+      <thead>
+        <tr><th>Hole</th><th>Par</th><th>Strokes Given</th><th>Strokes</th></tr>
+      </thead>
+      <tbody>
+        {% for hole in holes %}
+        <tr>
+          <td>{{ hole[0] }}</td>
+          <td>{{ hole[1] }}</td>
+          <td>{{ hole[2] }}</td>
+          <td><input type="number" inputmode="numeric" class="stroke-input" data-hole="{{ hole[0] }}"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="button" onclick="saveOffline()" class="btn btn-masters-green">Save to Device</button>
+  </form>
+
+  <div class="mt-3">
+    <button class="btn btn-masters-gold" onclick="viewSaved()">View Saved Scores</button>
+    <div id="saved-output" class="mt-2"></div>
+  </div>
+</div>
+<div class="mt-3">
+    <button class="btn btn-masters-green-invert" onclick="syncScores()">Sync to Server</button>
+    <div id="sync-status" class="mt-2"></div>
+  </div>
+  
+  <script>
+    async function syncScores() {
+      const scores = localStorage.getItem(STORAGE_KEY);
+      if (!scores) {
+        alert('No scores saved locally.');
+        return;
+      }
+  
+      const response = await fetch('/sync_personal_score_offline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: scores
+      });
+  
+      const result = await response.json();
+      const status = document.getElementById('sync-status');
+      if (response.ok) {
+        localStorage.removeItem(STORAGE_KEY);
+        status.innerHTML = '<span style="color:green;">✅ Sync successful!</span>';
+      } else {
+        status.innerHTML = '<span style="color:red;">❌ Sync failed: ' + result.error + '</span>';
+      }
+    }
+  </script>
+<script>
+  const STORAGE_KEY = 'offline_personal_score';
+
+  function saveOffline() {
+    const inputs = document.querySelectorAll('.stroke-input');
+    const scores = {};
+    inputs.forEach(input => {
+      scores['hole_' + input.dataset.hole] = input.value;
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+    alert('Scores saved to device!');
+  }
+
+  function viewSaved() {
+    const output = document.getElementById('saved-output');
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    output.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+  }
+</script>
+
+</body>
+</html>

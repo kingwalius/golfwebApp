@@ -2,7 +2,7 @@ const CACHE_NAME = 'golf-app-v2';
 const STATIC_ASSETS = [
   '/',
   '/offline',
-  '/personal_score',
+  '/personal_score_offline',
   '/record_score',
   '/static/styles.css',
   '/static/manifest.json',

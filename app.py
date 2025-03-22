@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
+from flask import request, jsonify
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -922,6 +923,36 @@ def submit_personal_score():
 
     # ✅ Redirect to user's rounds
     return redirect(url_for('user_rounds'))
+
+#------------------------------------------------------------------------------------------
+#personal round offline 
+@app.route('/personal_score_offline')
+def personal_score_offline():
+    # Use dummy/static data to render the form — user not required
+    holes = [(i, 4, 2) for i in range(1, 19)]  # Example: 18 holes, Par 4, 2 strokes given
+    return render_template('personal_score_offline.html', holes=holes)
+
+#------------------------------------------------------------------------------------------
+#submit personal score offline
+
+@app.route('/sync_personal_score_offline', methods=['POST'])
+def sync_personal_score_offline():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data received'}), 400
+
+        # You can add logic here to:
+        # - Attach scores to a user/round
+        # - Save into PersonalScore table
+        # - Create a new round ID if needed
+
+        print('[SYNCED SCORES]', data)  # Log to debug
+
+        return jsonify({'status': 'success'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 #------------------------------------------------------------------------------------------
 #user rounds view
