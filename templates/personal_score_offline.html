@@ -3,7 +3,10 @@
 <head>
   <title>Offline Score Entry</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="/static/styles.css">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
   <style>
     .locked-row { background-color: #ccc; }
     .offline-warning { color: red; font-weight: bold; }
@@ -14,24 +17,34 @@
 <div class="container">
   <h2>Personal Score (Offline Mode)</h2>
   <p class="offline-warning">You're offline — your scores will be saved locally.</p>
+  </div>
 
+<div class="table-responsive">
   <form id="offline-score-form">
-    <table class="table text-center">
+    <div class="mb-3">
+      <label for="handicap-input" class="form-label">Handicap</label>
+      <input type="number" id="handicap-input" inputmode="numeric" class="form-control">
+    </div>
+    <table class="table table-hover text-centerr">
       <thead>
-        <tr><th>Hole</th><th>Par</th><th>Strokes Given</th><th>Strokes</th></tr>
+        <tr><th>Hole</th><th>Par</th><th>Strokes Given</th><th>Strokes</th><th>Stableford</th></tr>
       </thead>
       <tbody>
         {% for hole in holes %}
         <tr>
           <td>{{ hole[0] }}</td>
-          <td>{{ hole[1] }}</td>
+          <td class="par-cell">{{ hole[1] }}</td>
           <td>{{ hole[2] }}</td>
           <td><input type="number" inputmode="numeric" class="stroke-input" data-hole="{{ hole[0] }}"></td>
+          <td class="points-display" data-hole="{{ hole[0] }}"></td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
-    <button type="button" onclick="saveOffline()" class="btn btn-masters-green">Save to Device</button>
+    <div class="mb-3">
+      <strong>Total Stableford Points: </strong><span id="total-points">0</span>
+    </div>
+    <button type="button" onclick="saveOffline()" class="btn btn-masters-green-invert btn-transition  w-100 py-2">Save to Device</button>
   </form>
 
   <div class="mt-3">
@@ -43,7 +56,12 @@
     <button class="btn btn-masters-green-invert" onclick="syncScores()">Sync to Server</button>
     <div id="sync-status" class="mt-2"></div>
   </div>
-  
+  <nav class="mobile-nav two-items"> 
+    <ul>
+        <li><a href="{{ url_for('courses') }}" class="nav-link">Courses</a></li>
+        <li><a href="{{ url_for('user_rounds') }}" class="nav-link">Back</a></li>
+    </ul>
+  </nav>   
   <script>
     async function syncScores() {
       const scores = localStorage.getItem(STORAGE_KEY);
@@ -77,7 +95,13 @@
     inputs.forEach(input => {
       scores['hole_' + input.dataset.hole] = input.value;
     });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+    const stablefordCells = document.querySelectorAll('.points-display');
+    const stableford = {};
+    stablefordCells.forEach(cell => {
+      stableford['hole_' + cell.dataset.hole] = cell.textContent.trim();
+    });
+    const data = { strokes: scores, stableford: stableford };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     alert('Scores saved to device!');
   }
 
@@ -86,6 +110,44 @@
     const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
     output.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
   }
+
+  function calculateStableford(par, strokes) {
+    const diff = strokes - par;
+    if (diff <= -2) return 5;
+    if (diff === -1) return 4;
+    if (diff === 0) return 3;
+    if (diff === 1) return 2;
+    if (diff === 2) return 1;
+    return 0;
+  }
+
+  function recalcStableford() {
+    const handicapInput = document.getElementById('handicap-input');
+    const handicap = parseInt(handicapInput.value) || 0;
+    let totalPoints = 0;
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+      const parCell = row.querySelector('.par-cell');
+      const par = parseInt(parCell.textContent) || 0;
+      const strokeInput = row.querySelector('.stroke-input');
+      const strokes = parseInt(strokeInput.value) || 0;
+      // For simplicity, handicap is not applied per-hole in this calculation.
+      const points = calculateStableford(par, strokes);
+      totalPoints += points;
+      const pointsDisplay = row.querySelector('.points-display');
+      pointsDisplay.textContent = points;
+    });
+    document.getElementById('total-points').textContent = totalPoints;
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const strokeInputs = document.querySelectorAll('.stroke-input');
+    strokeInputs.forEach(input => {
+      input.addEventListener('input', recalcStableford);
+    });
+    const handicapInput = document.getElementById('handicap-input');
+    handicapInput.addEventListener('input', recalcStableford);
+  });
 </script>
 
 </body>
