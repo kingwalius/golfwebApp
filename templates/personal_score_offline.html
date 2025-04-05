@@ -1,16 +1,17 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Offline Score Entry</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <title>Personal Score Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  <style>
-    .locked-row { background-color: #ccc; }
-    .offline-warning { color: red; font-weight: bold; }
-  </style>
+    <style>
+        body { background-color: #f8f9f8; font-family: 'Arial', sans-serif; }
+        .container { max-width: 900px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-top: 40px; }
+        .locked-row { background-color: #e9e9e9; }
+    </style>
 </head>
 <body>
 
