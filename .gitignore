@@ -1,21 +1,8 @@
-# Python
+venv/
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Databases (optional if you want a clean deployment)
+instance/
+.env
 *.db
-
-# VSCode
-.vscode/
-
-# MacOS
-.DS_Store
+*.sqlite3
+migrations/versions/*.pyc
