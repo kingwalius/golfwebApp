@@ -211,6 +211,7 @@ def login():
 @app.route('/api/is_logged_in')
 def is_logged_in():
     from flask_login import current_user
+    from flask import jsonify
     return jsonify({'logged_in': current_user.is_authenticated})
 
 #------------------------------------------------------------------------------------------
