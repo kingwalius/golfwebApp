@@ -206,6 +206,12 @@ def login():
             return render_template('login.html', error='Invalid credentials')
 
     return render_template('login.html')
+#------------------------------------------------------------------------------------------
+#logged in
+@app.route('/api/is_logged_in')
+def is_logged_in():
+    from flask_login import current_user
+    return jsonify({'logged_in': current_user.is_authenticated})
 
 #------------------------------------------------------------------------------------------
 #Logout

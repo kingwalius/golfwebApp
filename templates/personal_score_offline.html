@@ -69,40 +69,52 @@
             </table>
         </div>
         <button class='btn btn-masters-green-invert btn-transition w-100 py-2' onclick="saveOffline()">Save to Device</button>
-        {% if current_user.is_authenticated %}
-        <button class="btn btn-masters-gold w-100 mt-2" onclick="syncOfflineScore()">Save & Sync to Server</button>
-        <div id="sync-status" class="mt-2 text-center"></div>
-        {% else %}
-        <div class="alert alert-warning text-center mt-3">
-            You must be <a href="{{ url_for('login', next='/personal_score_offline') }}">logged in</a> to sync your round.
-        </div>
-        {% endif %}
+        <div id="sync-block" style="display:none;">
+            <button class="btn btn-masters-gold w-100 mt-2" onclick="syncOfflineScore()">Save & Sync to Server</button>
+            <div id="sync-status" class="mt-2 text-center"></div>
+          </div>   
+          <div id="login-hint" style="display:none;" class="alert alert-warning text-center mt-3">
+            You must be <a href="/login?next=/personal_score_offline">logged in</a> to sync your round.
+          </div>
         <button class='btn btn-secondary mt-2 w-100' onclick="viewSaved()">View Saved</button>
         <pre id="saved-output" class="mt-2" style="display:none;"></pre>
     </div>
 </div>
 
 <script>
-  window.addEventListener('DOMContentLoaded', () => {
-  const storedCourses = localStorage.getItem('golf_courses_detailed');
-  const courseSelect = document.getElementById('course_id');
-
-  if (storedCourses) {
-    const courses = JSON.parse(storedCourses);
-    courses.forEach(course => {
-      const option = document.createElement('option');
-      option.value = course.id;
-      option.textContent = course.name;
-      courseSelect.appendChild(option);
+    window.addEventListener('DOMContentLoaded', async () => {
+      const storedCourses = localStorage.getItem('golf_courses_detailed');
+      const courseSelect = document.getElementById('course_id');
+  
+      if (storedCourses) {
+        const courses = JSON.parse(storedCourses);
+        courses.forEach(course => {
+          const option = document.createElement('option');
+          option.value = course.id;
+          option.textContent = course.name;
+          courseSelect.appendChild(option);
+        });
+      } else {
+        const option = document.createElement('option');
+        option.textContent = "⚠️ No courses available (load once online)";
+        option.disabled = true;
+        courseSelect.appendChild(option);
+      }
+  
+      // ✅ Login-Status prüfen
+      try {
+        const res = await fetch('/api/is_logged_in', { credentials: 'include' });
+        const data = await res.json();
+        if (data.logged_in) {
+          document.getElementById('sync-block').style.display = 'block';
+        } else {
+          document.getElementById('login-hint').style.display = 'block';
+        }
+      } catch (err) {
+        console.error("Login check failed", err);
+      }
     });
-  } else {
-    const option = document.createElement('option');
-    option.textContent = "⚠️ No courses available (load once online)";
-    option.disabled = true;
-    courseSelect.appendChild(option);
-  }
-});
-</script>
+  </script>
 <script>
 let touchStartX = null;
 const STORAGE_KEY = 'offline_personal_score';
