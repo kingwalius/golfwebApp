@@ -164,6 +164,11 @@ function viewSaved() {
     output.innerText = data || 'No saved data.';
 }
 </script>
-
+<nav class="mobile-nav two-items"> 
+  <ul>
+      <li><a href="{{ url_for('courses') }}" class="nav-link">Courses</a></li>
+      <li><a href="{{ url_for('user_rounds') }}" class="nav-link">Back</a></li>
+  </ul>
+</nav>  
 </body>
 </html>
