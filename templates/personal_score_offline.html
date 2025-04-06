@@ -193,29 +193,33 @@ function viewSaved() {
 async function syncOfflineScore() {
     const status = document.getElementById('sync-status');
     const data = localStorage.getItem('offline_personal_score');
+
     if (!data) {
-        status.innerHTML = "<span class='text-danger'>No offline score found.</span>";
-        return;
+      status.innerHTML = "<span class='text-danger'>⚠️ No offline score found.</span>";
+      return;
     }
 
     try {
-        const response = await fetch('/sync_personal_score_offline', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: data
-        });
+      const response = await fetch('/sync_personal_score_offline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: data,
+        credentials: 'include'  // ✅ Wichtig: damit Session-Cookie mitgesendet wird!
+      });
 
-        if (response.ok) {
-            localStorage.removeItem('offline_personal_score');
-            status.innerHTML = "<span class='text-success'>✅ Synced successfully!</span>";
-        } else {
-            const error = await response.json();
-            status.innerHTML = `<span class='text-danger'>❌ Sync failed: ${error.error}</span>`;
-        }
+      if (response.ok) {
+        localStorage.removeItem('offline_personal_score');
+        status.innerHTML = "<span class='text-success'>✅ Synced successfully!</span>";
+      } else {
+        const result = await response.json();
+        status.innerHTML = `<span class='text-danger'>❌ Sync failed: ${result.error || response.statusText}</span>`;
+      }
     } catch (e) {
-        status.innerHTML = "<span class='text-danger'>❌ Network error during sync.</span>";
+      console.error("Network error:", e);
+      status.innerHTML = "<span class='text-danger'>❌ Network error during sync.</span>";
     }
-}
+  }
+
 </script>
 <nav class="mobile-nav two-items"> 
   <ul>
