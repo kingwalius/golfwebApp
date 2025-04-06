@@ -680,12 +680,12 @@ def course_detail():
     if not course:
         return jsonify({"error": "Course not found"}), 404
 
-    holes = Hole.query.filter_by(course_id=course.id).order_by(Hole.number).all()
+    holes = Hole.query.filter_by(course_id=course.id).order_by(Hole.hole_number).all()
     tees = Tee.query.filter_by(course_id=course.id).all()
 
     hole_data = [
-        {"number": h.number, "par": h.par, "hcp": h.hcp_index} for h in holes
-    ]
+    {"number": h.hole_number, "par": h.par, "hcp": h.handicap_index} for h in holes
+]
 
     tee_data = {}
     for tee in tees:
