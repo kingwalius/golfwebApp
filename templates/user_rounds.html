@@ -58,7 +58,10 @@
 
     <!-- Rounds Section -->
     <h3 class="text-center">Your Played Rounds</h3>
-
+    <div class="my-4 text-center">
+        <button class="btn btn-masters-gold" onclick="syncOfflineScore()">Sync Offline Round</button>
+        <div id="sync-status" class="mt-2 text-center"></div>
+      </div>
     {% if rounds %}
     <table class="table table-hover text-center mt-4">
         <thead>
@@ -82,7 +85,53 @@
     <p class="text-center text-muted mt-4">No rounds played yet. Let's get on the course!</p>
     {% endif %}
 </div>
-
+<script>
+    async function syncOfflineScore() {
+      const status = document.getElementById('sync-status');
+      const data = localStorage.getItem('offline_personal_score');
+    
+      if (!data) {
+        status.innerHTML = "<span class='text-danger'>⚠️ No offline score found.</span>";
+        return;
+      }
+    
+      try {
+        const response = await fetch('/sync_personal_score_offline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: data,
+          credentials: 'include'
+        });
+    
+        if (response.status === 401) {
+          window.location.href = "/login?next=/user_rounds";
+          return;
+        }
+    
+        const result = await response.json();
+    
+        if (response.ok) {
+          localStorage.removeItem('offline_personal_score');
+          status.innerHTML = "<span class='text-success'>✅ Synced successfully! Please reload to see the round.</span>";
+        } else {
+          status.innerHTML = `<span class='text-danger'>❌ Sync failed: ${result.error || response.statusText}</span>`;
+        }
+      } catch (e) {
+        console.error("Network error:", e);
+        status.innerHTML = "<span class='text-danger'>❌ Network error during sync.</span>";
+      }
+    }
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          if (localStorage.getItem('offline_personal_score')) {
+            const notice = document.createElement('div');
+            notice.className = "alert alert-info text-center";
+            notice.innerHTML = "You have an offline round. <strong>Don't forget to sync it!</strong>";
+            document.querySelector(".container").prepend(notice);
+          }
+        });
+      </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
