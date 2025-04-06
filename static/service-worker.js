@@ -22,7 +22,10 @@ self.addEventListener('install', function (event) {
 // ✅ Handle fetch with dynamic route support
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-
+  if (url.pathname === '/user_rounds') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
   // ✅ Cache `/record_score` and `/personal_score` dynamically
   const dynamicRoutes = ['/record_score', '/personal_score'];
 
