@@ -76,7 +76,7 @@
 
 <script>
   window.addEventListener('DOMContentLoaded', () => {
-  const storedCourses = localStorage.getItem('golf_courses');
+  const storedCourses = localStorage.getItem('golf_courses_detailed');
   const courseSelect = document.getElementById('course_id');
 
   if (storedCourses) {
@@ -100,30 +100,52 @@ let touchStartX = null;
 const STORAGE_KEY = 'offline_personal_score';
 
 function generateTable() {
+    const courseId = document.getElementById('course_id').value;
+    const gender = document.getElementById('gender').value;
+    const teeColor = document.getElementById('tee_color').value;
     const handicap = parseFloat(document.getElementById('handicap').value) || 0;
-    document.getElementById('playing_handicap').value = handicap.toFixed(1);
-    document.querySelector('#score-table tbody').innerHTML = '';
 
-    for (let i = 1; i <= 18; i++) {
+    const storedCourses = JSON.parse(localStorage.getItem('golf_courses_detailed')) || [];
+    const selectedCourse = storedCourses.find(c => c.id.toString() === courseId);
+    if (!selectedCourse) return alert('Course data not found.');
+
+    const teeData = selectedCourse.tees?.[gender]?.[teeColor];
+    if (!teeData) return alert('Tee data not found for selection.');
+
+    const slope = parseFloat(teeData.slope);
+    const cr = parseFloat(teeData.cr);
+    const courseRating = cr;
+    const playingHandicap = Math.round(handicap * (slope / 113));
+    document.getElementById('playing_handicap').value = playingHandicap;
+
+    const holes = selectedCourse.holes || [];
+    const sortedHoles = holes.slice().sort((a,b) => a.hcp - b.hcp);
+
+    let strokesPerHole = Array(18).fill(0);
+    for (let i = 0; i < playingHandicap; i++) {
+        strokesPerHole[sortedHoles[i % 18].number - 1]++;
+    }
+
+    document.querySelector('#score-table tbody').innerHTML = '';
+    holes.forEach((hole, index) => {
+        const given = strokesPerHole[hole.number - 1];
         const row = document.createElement('tr');
-        row.id = `row_${i}`;
+        row.id = `row_${hole.number}`;
         row.innerHTML = `
-            <td><strong>${i}</strong></td>
-            <td>4</td>
-            <td>1</td>
-            <td><input type="number" inputmode="numeric" pattern="[0-9]*" id="strokes_hole_${i}" class="form-control text-center" oninput="updateStableford(${i})"></td>
-            <td id="stableford_hole_${i}">-</td>
+            <td><strong>${hole.number}</strong></td>
+            <td>${hole.par}</td>
+            <td>${given}</td>
+            <td><input type="number" inputmode="numeric" pattern="[0-9]*" id="strokes_hole_${hole.number}" class="form-control text-center" oninput="updateStableford(${hole.number}, ${hole.par}, ${given})"></td>
+            <td id="stableford_hole_${hole.number}">-</td>
         `;
         document.querySelector('#score-table tbody').appendChild(row);
-    }
+    });
 
     document.getElementById('score-section').style.display = 'block';
 }
 
-function updateStableford(holeId) {
+function updateStableford(holeId, par, strokesGiven) {
     const input = document.getElementById('strokes_hole_' + holeId);
-    const par = 4;
-    const strokesGiven = 1;
     const strokesTaken = parseInt(input.value) || 0;
     const netScore = strokesTaken - strokesGiven;
     const stableford = calculateStableford(par, netScore);
@@ -151,7 +173,10 @@ function saveOffline() {
         strokes: {}
     };
     for (let i = 1; i <= 18; i++) {
-        data.strokes['hole_' + i] = document.getElementById('strokes_hole_' + i).value;
+        const input = document.getElementById('strokes_hole_' + i);
+        if (input) {
+            data.strokes['hole_' + i] = input.value;
+        }
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     alert('Offline round saved!');

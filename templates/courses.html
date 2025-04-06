@@ -30,23 +30,36 @@
                 </tbody>
             </table>
         </div>
-        <button onclick="saveCoursesOffline()" class="btn btn-masters-green-invert mb-3">Kurse offline speichern</button>
+        <button onclick="saveCoursesOffline()" class="btn btn-masters-green-invert w-100 py-2">Kurse offline speichern</button>
         <div id="save-status" class="text-muted small mb-3"></div>
         <script>
-            function saveCoursesOffline() {
-            const rows = document.querySelectorAll('table tbody tr');
-            const courses = [];
-            rows.forEach(row => {
-                const name = row.children[0].textContent.trim();
-                const id = row.dataset.href?.split('=')[1]; // Extract course_id from URL
-                if (id && name) {
-                courses.push({ id, name });
+            async function saveCoursesOffline() {
+              const rows = document.querySelectorAll('table tbody tr');
+              const courses = [];
+            
+              for (const row of rows) {
+                const id = row.dataset.href?.split('=')[1];
+                if (!id) continue;
+            
+                try {
+                  const response = await fetch(`/api/course_detail?course_id=${id}`);
+                  if (!response.ok) throw new Error("Fehler beim Laden");
+            
+                  const courseData = await response.json();
+                  courses.push(courseData);
+                } catch (err) {
+                  console.error(`Fehler beim Laden des Kurses ${id}:`, err);
                 }
-            });
-            localStorage.setItem('golf_courses', JSON.stringify(courses));
-            document.getElementById('save-status').textContent = '✅ Kurse wurden lokal gespeichert!';
+              }
+            
+              if (courses.length > 0) {
+                localStorage.setItem('golf_courses_detailed', JSON.stringify(courses));
+                document.getElementById('save-status').textContent = '✅ Alle Kursdaten wurden offline gespeichert!';
+              } else {
+                document.getElementById('save-status').textContent = '⚠️ Keine Kurse gespeichert. Prüfe Verbindung oder API.';
+              }
             }
-        </script>
+            </script>
         <script>
             document.addEventListener("DOMContentLoaded", function () {
                 document.querySelectorAll(".clickable-row").forEach(row => {

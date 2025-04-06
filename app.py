@@ -668,6 +668,44 @@ def courses():
     # ✅ Render template and pass courses
     return render_template('courses.html', courses=courses)
 
+#-------------------------------------------------------------------------------------------
+# API to get course details
+@app.route('/api/course_detail')
+def course_detail():
+    course_id = request.args.get('course_id')
+    if not course_id:
+        return jsonify({"error": "Missing course_id"}), 400
+
+    course = Course.query.filter_by(id=course_id).first()
+    if not course:
+        return jsonify({"error": "Course not found"}), 404
+
+    holes = Hole.query.filter_by(course_id=course.id).order_by(Hole.number).all()
+    tees = Tee.query.filter_by(course_id=course.id).all()
+
+    hole_data = [
+        {"number": h.number, "par": h.par, "hcp": h.hcp_index} for h in holes
+    ]
+
+    tee_data = {}
+    for tee in tees:
+        if tee.gender not in tee_data:
+            tee_data[tee.gender] = {}
+        tee_data[tee.gender][tee.color] = {
+            "slope": tee.slope_rating,
+            "cr": tee.course_rating
+        }
+
+    result = {
+        "id": course.id,
+        "name": course.name,
+        "holes": hole_data,
+        "tees": tee_data
+    }
+
+    return jsonify(result)
+
+
 #------------------------------------------------------------------------------------------
 #Delete a course
 @app.route('/delete_course/<int:course_id>', methods=['POST'])
