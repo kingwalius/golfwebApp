@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Personal Score Tracker</title>
+<head>
+    <title>Personal Score Tracker (Offline)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css'>
@@ -15,140 +15,133 @@
 </head>
 <body>
 
-<div class="container">
-  <h2>Personal Score (Offline Mode)</h2>
-  <p class="offline-warning">You're offline — your scores will be saved locally.</p>
-  </div>
+<div class='container'>
+    <h2 class='text-center text-success mb-4'><i class="fas fa-user"></i> Personal Score Tracker (Offline)</h2>
 
-<div class="table-responsive">
-  <form id="offline-score-form">
-    <div class="mb-3">
-      <label for="handicap-input" class="form-label">Handicap</label>
-      <input type="number" id="handicap-input" inputmode="numeric" class="form-control">
-    </div>
-    <table class="table table-hover text-centerr">
-      <thead>
-        <tr><th>Hole</th><th>Par</th><th>Strokes Given</th><th>Strokes</th><th>Stableford</th></tr>
-      </thead>
-      <tbody>
-        {% for hole in holes %}
-        <tr>
-          <td>{{ hole[0] }}</td>
-          <td class="par-cell">{{ hole[1] }}</td>
-          <td>{{ hole[2] }}</td>
-          <td><input type="number" inputmode="numeric" class="stroke-input" data-hole="{{ hole[0] }}"></td>
-          <td class="points-display" data-hole="{{ hole[0] }}"></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <div class="mb-3">
-      <strong>Total Stableford Points: </strong><span id="total-points">0</span>
-    </div>
-    <button type="button" onclick="saveOffline()" class="btn btn-masters-green-invert btn-transition  w-100 py-2">Save to Device</button>
-  </form>
+    <form id="offline-score-form">
+        <div class='mb-3'>
+            <label>Select Course:</label>
+            <select id='course_id' class='form-control' required></select>
+        </div>
+        <div class='mb-3'>
+            <label>Gender:</label>
+            <select id='gender' class='form-control' required>
+                <option value='Men'>Men</option>
+                <option value='Women'>Women</option>
+            </select>
+        </div>
+        <div class='mb-3'>
+            <label>Select Tee:</label>
+            <select id='tee_color' class='form-control' required>
+                <option value='White'>White</option>
+                <option value='Yellow'>Yellow</option>
+                <option value='Blue'>Blue</option>
+                <option value='Red'>Red</option>
+                <option value='Orange'>Orange</option>
+                <option value='Black'>Black</option>
+                <option value='Gold'>Gold</option>
+            </select>
+        </div>
+        <div class='mb-3'>
+            <label>Your Handicap:</label>
+            <input type='number' step='0.1' id='handicap' class='form-control' required>
+        </div>
+        <div class='mb-3'>
+            <label>Date Played:</label>
+            <input type='date' id='date_played' class='form-control' required>
+        </div>
+        <button type='button' class='btn btn-masters-green btn-transition w-100 py-2' onclick='generateTable()'>Calculate</button>
+    </form>
 
-  <div class="mt-3">
-    <button class="btn btn-masters-gold" onclick="viewSaved()">View Saved Scores</button>
-    <div id="saved-output" class="mt-2"></div>
-  </div>
+    <hr>
+
+    <div id="score-section" style="display:none;">
+        <div class='mb-3'>
+            <label>Playing Handicap:</label>
+            <input type='text' class='form-control' id='playing_handicap' readonly>
+        </div>
+        <div class="table-responsive">
+            <table class='table table-hover text-center' id="score-table">
+                <thead>
+                    <tr><th>Hole</th><th>Par</th><th>Strokes Given</th><th>Strokes Taken</th><th>Stableford Points</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <button class='btn btn-masters-green-invert btn-transition w-100 py-2' onclick="saveOffline()">Save to Device</button>
+        <button class='btn btn-secondary mt-2 w-100' onclick="viewSaved()">View Saved</button>
+        <pre id="saved-output" class="mt-2" style="display:none;"></pre>
+    </div>
 </div>
-<div class="mt-3">
-    <button class="btn btn-masters-green-invert" onclick="syncScores()">Sync to Server</button>
-    <div id="sync-status" class="mt-2"></div>
-  </div>
-  <nav class="mobile-nav two-items"> 
-    <ul>
-        <li><a href="{{ url_for('courses') }}" class="nav-link">Courses</a></li>
-        <li><a href="{{ url_for('user_rounds') }}" class="nav-link">Back</a></li>
-    </ul>
-  </nav>   
-  <script>
-    async function syncScores() {
-      const scores = localStorage.getItem(STORAGE_KEY);
-      if (!scores) {
-        alert('No scores saved locally.');
-        return;
-      }
-  
-      const response = await fetch('/sync_personal_score_offline', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: scores
-      });
-  
-      const result = await response.json();
-      const status = document.getElementById('sync-status');
-      if (response.ok) {
-        localStorage.removeItem(STORAGE_KEY);
-        status.innerHTML = '<span style="color:green;">✅ Sync successful!</span>';
-      } else {
-        status.innerHTML = '<span style="color:red;">❌ Sync failed: ' + result.error + '</span>';
-      }
-    }
-  </script>
+
 <script>
-  const STORAGE_KEY = 'offline_personal_score';
+let touchStartX = null;
+const STORAGE_KEY = 'offline_personal_score';
 
-  function saveOffline() {
-    const inputs = document.querySelectorAll('.stroke-input');
-    const scores = {};
-    inputs.forEach(input => {
-      scores['hole_' + input.dataset.hole] = input.value;
-    });
-    const stablefordCells = document.querySelectorAll('.points-display');
-    const stableford = {};
-    stablefordCells.forEach(cell => {
-      stableford['hole_' + cell.dataset.hole] = cell.textContent.trim();
-    });
-    const data = { strokes: scores, stableford: stableford };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    alert('Scores saved to device!');
-  }
+function generateTable() {
+    const handicap = parseFloat(document.getElementById('handicap').value) || 0;
+    document.getElementById('playing_handicap').value = handicap.toFixed(1);
+    document.querySelector('#score-table tbody').innerHTML = '';
 
-  function viewSaved() {
-    const output = document.getElementById('saved-output');
-    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-    output.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-  }
+    for (let i = 1; i <= 18; i++) {
+        const row = document.createElement('tr');
+        row.id = `row_${i}`;
+        row.innerHTML = `
+            <td><strong>${i}</strong></td>
+            <td>4</td>
+            <td>1</td>
+            <td><input type="number" inputmode="numeric" pattern="[0-9]*" id="strokes_hole_${i}" class="form-control text-center" oninput="updateStableford(${i})"></td>
+            <td id="stableford_hole_${i}">-</td>
+        `;
+        document.querySelector('#score-table tbody').appendChild(row);
+    }
 
-  function calculateStableford(par, strokes) {
-    const diff = strokes - par;
-    if (diff <= -2) return 5;
-    if (diff === -1) return 4;
-    if (diff === 0) return 3;
-    if (diff === 1) return 2;
-    if (diff === 2) return 1;
+    document.getElementById('score-section').style.display = 'block';
+}
+
+function updateStableford(holeId) {
+    const input = document.getElementById('strokes_hole_' + holeId);
+    const par = 4;
+    const strokesGiven = 1;
+    const strokesTaken = parseInt(input.value) || 0;
+    const netScore = strokesTaken - strokesGiven;
+    const stableford = calculateStableford(par, netScore);
+    document.getElementById('stableford_hole_' + holeId).innerText = stableford;
+}
+
+function calculateStableford(par, netScore) {
+    const scoreDiff = netScore - par;
+    if (scoreDiff <= -4) return 6;
+    if (scoreDiff === -3) return 5;
+    if (scoreDiff === -2) return 4;
+    if (scoreDiff === -1) return 3;
+    if (scoreDiff === 0) return 2;
+    if (scoreDiff === 1) return 1;
     return 0;
-  }
+}
 
-  function recalcStableford() {
-    const handicapInput = document.getElementById('handicap-input');
-    const handicap = parseInt(handicapInput.value) || 0;
-    let totalPoints = 0;
-    const rows = document.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-      const parCell = row.querySelector('.par-cell');
-      const par = parseInt(parCell.textContent) || 0;
-      const strokeInput = row.querySelector('.stroke-input');
-      const strokes = parseInt(strokeInput.value) || 0;
-      // For simplicity, handicap is not applied per-hole in this calculation.
-      const points = calculateStableford(par, strokes);
-      totalPoints += points;
-      const pointsDisplay = row.querySelector('.points-display');
-      pointsDisplay.textContent = points;
-    });
-    document.getElementById('total-points').textContent = totalPoints;
-  }
+function saveOffline() {
+    const data = {
+        course: document.getElementById('course_id').value,
+        gender: document.getElementById('gender').value,
+        tee: document.getElementById('tee_color').value,
+        handicap: document.getElementById('handicap').value,
+        date: document.getElementById('date_played').value,
+        strokes: {}
+    };
+    for (let i = 1; i <= 18; i++) {
+        data.strokes['hole_' + i] = document.getElementById('strokes_hole_' + i).value;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    alert('Offline round saved!');
+}
 
-  document.addEventListener('DOMContentLoaded', function() {
-    const strokeInputs = document.querySelectorAll('.stroke-input');
-    strokeInputs.forEach(input => {
-      input.addEventListener('input', recalcStableford);
-    });
-    const handicapInput = document.getElementById('handicap-input');
-    handicapInput.addEventListener('input', recalcStableford);
-  });
+function viewSaved() {
+    const output = document.getElementById('saved-output');
+    const data = localStorage.getItem(STORAGE_KEY);
+    output.style.display = 'block';
+    output.innerText = data || 'No saved data.';
+}
 </script>
 
 </body>
