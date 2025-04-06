@@ -75,6 +75,27 @@
 </div>
 
 <script>
+  window.addEventListener('DOMContentLoaded', () => {
+  const storedCourses = localStorage.getItem('golf_courses');
+  const courseSelect = document.getElementById('course_id');
+
+  if (storedCourses) {
+    const courses = JSON.parse(storedCourses);
+    courses.forEach(course => {
+      const option = document.createElement('option');
+      option.value = course.id;
+      option.textContent = course.name;
+      courseSelect.appendChild(option);
+    });
+  } else {
+    const option = document.createElement('option');
+    option.textContent = "⚠️ No courses available (load once online)";
+    option.disabled = true;
+    courseSelect.appendChild(option);
+  }
+});
+</script>
+<script>
 let touchStartX = null;
 const STORAGE_KEY = 'offline_personal_score';
 

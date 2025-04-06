@@ -97,6 +97,17 @@
 </div>
 
 <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const courseOptions = Array.from(document.querySelectorAll('select[name="course_id"] option'));
+      const courses = courseOptions.map(opt => ({
+        id: opt.value,
+        name: opt.textContent
+      })).filter(c => c.id);
+      localStorage.setItem('golf_courses', JSON.stringify(courses));
+    });
+    </script>
+
+<script>
 let touchStartX = null;
 
 function updateStableford(holeId) {
