@@ -30,6 +30,23 @@
                 </tbody>
             </table>
         </div>
+        <button onclick="saveCoursesOffline()" class="btn btn-masters-green-invert mb-3">Kurse offline speichern</button>
+        <div id="save-status" class="text-muted small mb-3"></div>
+        <script>
+            function saveCoursesOffline() {
+            const rows = document.querySelectorAll('table tbody tr');
+            const courses = [];
+            rows.forEach(row => {
+                const name = row.children[0].textContent.trim();
+                const id = row.dataset.href?.split('=')[1]; // Extract course_id from URL
+                if (id && name) {
+                courses.push({ id, name });
+                }
+            });
+            localStorage.setItem('golf_courses', JSON.stringify(courses));
+            document.getElementById('save-status').textContent = '✅ Kurse wurden lokal gespeichert!';
+            }
+        </script>
         <script>
             document.addEventListener("DOMContentLoaded", function () {
                 document.querySelectorAll(".clickable-row").forEach(row => {
