@@ -69,6 +69,8 @@
             </table>
         </div>
         <button class='btn btn-masters-green-invert btn-transition w-100 py-2' onclick="saveOffline()">Save to Device</button>
+        <button class='btn btn-masters-gold btn-transition w-100 py-2 mt-2' onclick="syncOfflineScore()">Save & Sync</button>
+        <div id="sync-status" class="mt-2 text-center"></div>
         <button class='btn btn-secondary mt-2 w-100' onclick="viewSaved()">View Saved</button>
         <pre id="saved-output" class="mt-2" style="display:none;"></pre>
     </div>
@@ -187,6 +189,32 @@ function viewSaved() {
     const data = localStorage.getItem(STORAGE_KEY);
     output.style.display = 'block';
     output.innerText = data || 'No saved data.';
+}
+async function syncOfflineScore() {
+    const status = document.getElementById('sync-status');
+    const data = localStorage.getItem('offline_personal_score');
+    if (!data) {
+        status.innerHTML = "<span class='text-danger'>No offline score found.</span>";
+        return;
+    }
+
+    try {
+        const response = await fetch('/sync_personal_score_offline', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: data
+        });
+
+        if (response.ok) {
+            localStorage.removeItem('offline_personal_score');
+            status.innerHTML = "<span class='text-success'>✅ Synced successfully!</span>";
+        } else {
+            const error = await response.json();
+            status.innerHTML = `<span class='text-danger'>❌ Sync failed: ${error.error}</span>`;
+        }
+    } catch (e) {
+        status.innerHTML = "<span class='text-danger'>❌ Network error during sync.</span>";
+    }
 }
 </script>
 <nav class="mobile-nav two-items"> 
