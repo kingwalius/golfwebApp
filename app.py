@@ -3,6 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import request, jsonify
 from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import login_required, current_user
+from flask_login import LoginManager
+from datetime import datetime
+from flask_migrate import Migrate
 
 import os
 import uuid
@@ -13,11 +17,18 @@ app.secret_key = 'admin'
 
 import os
 
+
 DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///golf_tournament.db')
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+login_manager = LoginManager()
+login_manager.init_app(app)
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 # =======================================
 # SQLAlchemy Models (Tables)
 # =======================================
@@ -55,6 +66,12 @@ class Hole(db.Model):
     par = db.Column(db.Integer, nullable=False)
     handicap_index = db.Column(db.Integer, nullable=False)
 
+class PersonalHoleScore(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    personal_score_id = db.Column(db.Integer, db.ForeignKey('personal_score.id'), nullable=False)
+    hole_number = db.Column(db.Integer, nullable=False)
+    strokes = db.Column(db.Integer, nullable=False)
+    points = db.Column(db.Integer, nullable=False)
 
 class Score(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -974,23 +991,95 @@ def personal_score_offline():
 #submit personal score offline
 
 @app.route('/sync_personal_score_offline', methods=['POST'])
+@login_required
 def sync_personal_score_offline():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data received"}), 400
+
     try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data received'}), 400
+        course_id = int(data.get("course"))
+        gender = data.get("gender")
+        tee = data.get("tee")
+        handicap = float(data.get("handicap"))
+        date_played = datetime.strptime(data.get("date"), "%Y-%m-%d").date()
+        strokes = data.get("strokes", {})
 
-        # You can add logic here to:
-        # - Attach scores to a user/round
-        # - Save into PersonalScore table
-        # - Create a new round ID if needed
+        course = Course.query.get(course_id)
+        if not course:
+            return jsonify({"error": "Course not found"}), 404
 
-        print('[SYNCED SCORES]', data)  # Log to debug
+        holes = Hole.query.filter_by(course_id=course_id).all()
+        holes_by_number = {h.hole_number: h for h in holes}
 
-        return jsonify({'status': 'success'}), 200
+        tees = Tee.query.filter_by(course_id=course_id, gender=gender, tee_color=tee).first()
+        if not tees:
+            return jsonify({"error": "Tee data not found"}), 404
+
+        slope = tees.slope_rating
+        cr = tees.course_rating
+        playing_handicap = round(handicap * (slope / 113))
+
+        # Verteile Vorgabeschläge
+        sorted_holes = sorted(holes, key=lambda h: h.handicap_index or 18)
+        strokes_per_hole = {h.hole_number: 0 for h in holes}
+        for i in range(playing_handicap):
+            h = sorted_holes[i % 18]
+            strokes_per_hole[h.hole_number] += 1
+
+        # Runde speichern
+        personal_score = PersonalScore(
+            user_id=current_user.id,
+            course_id=course_id,
+            gender=gender,
+            tee_color=tee,
+            handicap=handicap,
+            date_played=date_played
+        )
+        db.session.add(personal_score)
+        db.session.flush()
+
+        for hole_key, stroke_value in strokes.items():
+            hole_number = int(hole_key.split('_')[1])
+            strokes_taken = int(stroke_value)
+            hole = holes_by_number.get(hole_number)
+
+            if not hole:
+                continue
+
+            received = strokes_per_hole.get(hole_number, 0)
+            net = strokes_taken - received
+            score_diff = net - hole.par
+            if score_diff <= -4:
+                points = 6
+            elif score_diff == -3:
+                points = 5
+            elif score_diff == -2:
+                points = 4
+            elif score_diff == -1:
+                points = 3
+            elif score_diff == 0:
+                points = 2
+            elif score_diff == 1:
+                points = 1
+            else:
+                points = 0
+
+            db.session.add(PersonalHoleScore(
+                personal_score_id=personal_score.id,
+                hole_number=hole_number,
+                strokes=strokes_taken,
+                points=points
+            ))
+
+        db.session.commit()
+        return jsonify({"success": True, "message": "Offline score synced."})
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        db.session.rollback()
+        print("Sync error:", e)
+        return jsonify({"error": "Sync failed", "details": str(e)}), 500
+
 
 #------------------------------------------------------------------------------------------
 #user rounds view
