@@ -691,7 +691,7 @@ def course_detail():
     for tee in tees:
         if tee.gender not in tee_data:
             tee_data[tee.gender] = {}
-        tee_data[tee.gender][tee.color] = {
+        tee_data[tee.gender][tee.tee_color] = {
             "slope": tee.slope_rating,
             "cr": tee.course_rating
         }
