@@ -176,6 +176,7 @@ def register_user():
                         username=username, email=email, password_hash=password_hash)
             db.session.add(user)
             db.session.commit()
+            app.logger.info(f"New user registered: {username} (ID: {user.id})")
 
             # Auto login
             session['user_id'] = user.id
