@@ -94,7 +94,7 @@
         status.innerHTML = "<span class='text-danger'>⚠️ No offline score found.</span>";
         return;
       }
-    
+    console.log(data)
       try {
         const response = await fetch('/sync_personal_score_offline', {
           method: 'POST',
